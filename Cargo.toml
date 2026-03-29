@@ -1,0 +1,25 @@
+[package]
+name = "fountain_scheme"
+version = "1.0.0"
+edition = "2024"
+authors = ["Shenghao Yang"]
+license = "MIT"
+description = "Configurable fountain code schemes built on fountain_engine"
+repository = "https://github.com/shhyang/fountain_scheme"
+documentation = "https://shhyang.github.io/fountain_docs/"
+keywords = ["fountain-code", "erasure-coding", "LT-code", "LDPC"]
+categories = ["algorithms", "encoding", "network-programming"]
+readme = "README.md"
+
+[dependencies]
+fountain_engine = "1.1"
+fountain_utility = "1.0"
+
+[dev-dependencies]
+serde_json = "1.0"
+rand = "0.8.5"
+
+[lints.clippy]
+needless_range_loop = "allow"
+cloned_ref_to_slice_refs = "allow"
+
