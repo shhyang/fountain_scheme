@@ -1,6 +1,6 @@
 [package]
 name = "fountain_scheme"
-version = "1.0.0"
+version = "1.0.1"
 edition = "2024"
 authors = ["Shenghao Yang"]
 license = "MIT"
@@ -12,7 +12,7 @@ categories = ["algorithms", "encoding", "network-programming"]
 readme = "README.md"
 
 [dependencies]
-fountain_engine = "1.1"
+fountain_engine = "1.1.1"
 fountain_utility = "1.0"
 
 [dev-dependencies]
