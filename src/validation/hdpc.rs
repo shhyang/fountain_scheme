@@ -3,7 +3,9 @@
 
 use fountain_engine::traits::HDPC;
 use fountain_engine::types::CodeParams;
+use fountain_engine::types::SolverType;
 use fountain_engine::DataManager;
+use fountain_engine::GF256;
 use fountain_utility::VecDataOperater;
 
 /// Validates that `mul_sparse_sh` and `mul_binary` produce consistent results for \(`D_s` `S_h`\).
@@ -21,13 +23,14 @@ pub fn validate_hdpc_mul_sparse<T: HDPC + ?Sized>(
     hdpc: &T,
     params: &CodeParams,
     sh_fn: &dyn Fn(usize) -> Vec<usize>,
+    gf: &GF256,
 ) {
     let h = params.h;
     let l = params.l;
     let a = params.a;
 
     // Calculate D_s S_h using mul_sparse_sh
-    let result_mul_sparse_sh = hdpc.mul_sparse_sh(params, &sh_fn);
+    let result_mul_sparse_sh = hdpc.mul_sparse_sh(Some(gf), params, &sh_fn);
 
     // Build binary column callback v for mul_binary: X has (k+l) rows, same layout as for sparse.
     let v = |row: usize| -> Vec<u8> {
@@ -44,7 +47,7 @@ pub fn validate_hdpc_mul_sparse<T: HDPC + ?Sized>(
         col
     };
 
-    let result_mul_binary = hdpc.mul_binary(params, h, &v);
+    let result_mul_binary = hdpc.mul_binary(Some(gf), params, h, &v);
 
     // Compare results
     assert_eq!(
@@ -111,6 +114,7 @@ pub fn validate_hdpc_mul_data<T: HDPC + ?Sized>(
     hdpc: &T,
     params: &CodeParams,
     matrix_x: &[Vec<u8>],
+    gf: &GF256,
 ) {
     let h = params.h;
     let kl = params.num_message_ldpc();
@@ -122,10 +126,14 @@ pub fn validate_hdpc_mul_data<T: HDPC + ?Sized>(
     let v = |row: usize| -> Vec<u8> { matrix_x[row].clone() };
 
     // Calculate D * X using mul_binary
-    let result_mul_binary_dx = hdpc.mul_binary(params, vector_length, &v);
+    let result_mul_binary_dx = hdpc.mul_binary(Some(gf), params, vector_length, &v);
 
     // Calculate D * X using mul_data
-    let mut manager = DataManager::new_with_operator(Box::new(VecDataOperater::new(vector_length)));
+    let mut manager = DataManager::new_with_operator(Box::new(VecDataOperater::new_with_gf256(
+        vector_length,
+        gf.primitive_polynomial(),
+    )));
+    manager.config_from(params.clone(), SolverType::OrdEnc);
 
     let x_ids: Vec<usize> = (0..kl).collect();
     for i in 0..kl {
@@ -188,9 +196,13 @@ pub fn validate_hdpc_mul_data<T: HDPC + ?Sized>(
         }
     };
 
-    let result_mul_binary_dx_2 = hdpc.mul_binary(params, vector_length, &v_2);
+    let result_mul_binary_dx_2 = hdpc.mul_binary(Some(gf), params, vector_length, &v_2);
 
-    let mut manager = DataManager::new_with_operator(Box::new(VecDataOperater::new(vector_length)));
+    let mut manager = DataManager::new_with_operator(Box::new(VecDataOperater::new_with_gf256(
+        vector_length,
+        gf.primitive_polynomial(),
+    )));
+    manager.config_from(params.clone(), SolverType::OrdEnc);
     let x_ids: Vec<usize> = (0..al).collect();
     for i in x_ids.clone() {
         manager.insert_data_vector(i, &matrix_x[i]);
@@ -239,7 +251,7 @@ pub fn validate_hdpc_mul_data<T: HDPC + ?Sized>(
 /// Cross-validates HDPC by running `mul_sparse_sh` vs `mul_binary` and `mul_binary` vs `mul_data` with random inputs.
 /// Test-only: compiled only when building tests (`cargo test`).
 #[cfg(test)]
-pub fn cross_validate_hdpc<T: HDPC + ?Sized>(hdpc: &T, params: &CodeParams) {
+pub fn cross_validate_hdpc<T: HDPC + ?Sized>(hdpc: &T, params: &CodeParams, gf: &GF256) {
     use rand::rngs::StdRng;
     use rand::seq::SliceRandom;
     use rand::{Rng, SeedableRng};
@@ -255,7 +267,7 @@ pub fn cross_validate_hdpc<T: HDPC + ?Sized>(hdpc: &T, params: &CodeParams) {
         cols.truncate(3.min(h));
         cols
     };
-    validate_hdpc_mul_sparse(hdpc, params, &sh_fn);
+    validate_hdpc_mul_sparse(hdpc, params, &sh_fn, gf);
 
     let vector_length = 4.max(h / 2);
     let mut matrix_x = vec![vec![0u8; vector_length]; kl];
@@ -267,6 +279,6 @@ pub fn cross_validate_hdpc<T: HDPC + ?Sized>(hdpc: &T, params: &CodeParams) {
             matrix_x[i][cols[j]] = 1;
         }
     }
-    validate_hdpc_mul_data(hdpc, params, &matrix_x);
+    validate_hdpc_mul_data(hdpc, params, &matrix_x, gf);
 }
 

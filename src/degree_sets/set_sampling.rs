@@ -3,7 +3,6 @@
 
 /// Sample the degree set with a sequence of sampled values.
 /// Given a sequence of \(d\) values, sample the degree set with the values.
-/// The \(d\) sampled values have the property that sample[i] is sampled from [0, n-1-i).
 /// Returns a vector of \(d\) values.
 pub fn sample_degree_set_with_values(k: usize, sample: &[usize]) -> Vec<usize> {
     let d = sample.len();

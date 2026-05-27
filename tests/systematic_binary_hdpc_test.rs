@@ -1,8 +1,7 @@
 // Copyright (c) 2025 Shenghao Yang. All rights reserved.
 // Licensed under the MIT License. See LICENSE-MIT for details.
 
-use fountain_engine::decoder::Decoder;
-use fountain_engine::encoder::Encoder;
+use fountain_engine::{Decoder, Encoder};
 use fountain_engine::traits::*;
 use fountain_engine::types::*;
 use fountain_scheme::validation::pseudo_rand::XorShift64;
@@ -28,7 +27,7 @@ fn test_binary_hdpc_lt_as_systematic_sets_code_type() {
 ///
 /// **Ignored:** [`Encoder::new_with_operator`] runs a systematic pre-solve over `coded_id in 0..k`.
 /// With [`BinaryHDPCLTCode`]'s R10 precodes, [`SystemSolver`] does not reach [`DecodeStatus::Decoded`],
-/// and the encoder panics with `systematic encoding failed` (see `fountain_engine::encoder::Encoder`).
+/// and the encoder panics with `systematic encoding failed` (see `fountain_engine::Encoder`).
 #[test]
 fn test_systematic_binary_hdpc_lt_roundtrip() {
     let k = 27;

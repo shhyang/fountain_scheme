@@ -10,8 +10,7 @@
 /// the linear algebra module and the data manager, and compare the results.
 use fountain_engine::algebra::finite_field::GF256;
 use fountain_engine::algebra::linear_algebra::Matrix;
-use fountain_engine::{DataManager, lu_solve, lu_solve_incr};
-use fountain_utility::VecDataOperater;
+use fountain_engine::{lu_solve, lu_solve_incr};
 
 mod common;
 use common::*;
@@ -81,7 +80,7 @@ fn test_lu_solve_incr() {
     let matrix_x = gen_random_matrix(n, t, 8);
     let matrix_b = Matrix::multiply(&field, &matrix_a, &matrix_x);
 
-    let mut data_manager = DataManager::new_with_operator(Box::new(VecDataOperater::new(t)));
+    let mut data_manager = data_manager_for_gf256(t, &field);
     let mut data_ids = (0..m).collect::<Vec<usize>>();
     for i in 0..m {
         data_manager.insert_data_vector(data_ids[i], &matrix_b[i]);
@@ -133,8 +132,6 @@ fn test_lu_solve_incr() {
     //}
     //lu_solve!(data_manager, &matrix_a_new, &p_data_ids);
 
-    // TODO: Fix lu_solve_incr implementation - currently failing due to permutation handling
-    // The basic lu_solve works correctly, but lu_solve_incr needs further investigation
     lu_solve_incr!(data_manager, &matrix_a, &p_data_ids, &perm_q);
 
     let mut q_data_ids = vec![0; r];
@@ -160,7 +157,7 @@ fn test_lu_solve() {
     let matrix_x = gen_random_matrix(n, t, 8);
     let matrix_b = Matrix::multiply(&field, &matrix_a, &matrix_x);
 
-    let mut data_manager = DataManager::new_with_operator(Box::new(VecDataOperater::new(t)));
+    let mut data_manager = data_manager_for_gf256(t, &field);
     let data_ids = (0..m).collect::<Vec<usize>>();
     for i in 0..m {
         data_manager.insert_data_vector(data_ids[i], &matrix_b[i]);
@@ -195,7 +192,7 @@ fn test_lu_solve() {
 fn test_matrix_multiplication() {
     let m = 10; // number of rows of A
     let n = 4; // number of columns of A
-    let t = 3; // vector length
+    let t = 3; // vector
     let field = GF256::default();
 
     // generate a random m x n matrix A
@@ -207,7 +204,7 @@ fn test_matrix_multiplication() {
     // calculate B = A X using the linear algebra module
     let matrix_b = Matrix::multiply(&field, &matrix_a, &matrix_x);
 
-    let mut data_manager = DataManager::new_with_operator(Box::new(VecDataOperater::new(t)));
+    let mut data_manager = data_manager_for_gf256(t, &field);
     // add the rows of X to the data manager
     for i in 0..n {
         data_manager.insert_data_vector(i, &matrix_x[i]);

@@ -1,8 +1,18 @@
 // Copyright (c) 2025 Shenghao Yang. All rights reserved.
 // Licensed under the MIT License. See LICENSE-MIT for details.
 
+use fountain_engine::algebra::finite_field::GF256;
+use fountain_engine::DataManager;
 use rand::Rng;
+use fountain_utility::VecDataOperater;
 
+/// In-memory [`DataManager`] whose operator uses the same GF(256) as `field`.
+#[allow(dead_code)]
+pub fn data_manager_for_gf256(vector_len: usize, field: &GF256) -> DataManager {
+    let mut manager = DataManager::new_with_operator(Box::new(VecDataOperater::new_with_gf256(vector_len, field.primitive_polynomial())));
+    manager.config_finite_field_from(field);
+    manager
+}
 /// Generate a random m x n matrix over the finite field GF(2^ffsize)
 #[must_use]
 pub fn gen_random_matrix(m: usize, n: usize, ffsize: u8) -> Vec<Vec<u8>> {

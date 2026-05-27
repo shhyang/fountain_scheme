@@ -17,7 +17,7 @@ use crate::types::PseudoRandom;
 use fountain_engine::traits::{CodeScheme, HDPC, LDPC};
 use fountain_engine::types::{CodeParams, CodeType, DecodingConfig, DegreeSetFn};
 
-/// HDPC-LT code: R10 parameters (nonzero `l` and `h`), [`R10LDPC`], and default cyclic HDPC.
+/// HDPC-LT code: R10 parameters (nonzero `l` and `h`), and default cyclic HDPC.
 #[derive(Clone)]
 pub struct HDPCLTCode<R: PseudoRandom> {
     degree_cdf: Vec<ProbValue>,

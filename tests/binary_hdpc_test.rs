@@ -1,8 +1,7 @@
 // Copyright (c) 2025 Shenghao Yang. All rights reserved.
 // Licensed under the MIT License. See LICENSE-MIT for details.
 
-use fountain_engine::decoder::Decoder;
-use fountain_engine::encoder::Encoder;
+use fountain_engine::{Decoder, Encoder};
 use fountain_engine::traits::*;
 use fountain_engine::types::*;
 use fountain_scheme::degree_sets::asymp_optimal_cdf;
@@ -12,7 +11,7 @@ use fountain_utility::VecDataOperater;
 
 /// Ordinary mode via [`BinaryHDPCLTCode::new_with_ideal_soliton`] 
 #[test]
-fn test_binary_hdpc_lt_ordinary_from_ideal_soliton() {
+fn test_binary_hdpc_lt_ordinary() {
     for k in 12..21 {
         for offset in 0..20 {
             let config = BinaryHDPCLTCode::new_with_ideal_soliton(k, XorShift64::new(0x00C0_FFEE));

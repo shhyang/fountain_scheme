@@ -3,9 +3,10 @@
 
 use crate::precodes::gray::Gray;
 use fountain_engine::DataManager;
+use fountain_engine::algebra::linear_algebra::Vector;
+use fountain_engine::algebra::finite_field::GF256;
 use fountain_engine::traits::HDPC;
-use fountain_engine::types::CodeParams;
-use fountain_engine::algebra::binary_vector::BinaryVector;
+use fountain_engine::types::{CodeParams, GF2_FIELD_POLY};
 
 fn r10_mul_data(
     manager: &mut DataManager,
@@ -38,10 +39,13 @@ fn r10_mul_data(
     manager.remove(temp_id);
 }
 
-/// Raptor-10 HDPC precode using balanced Gray code binary matrices.
+/// Raptor-10 HDPC precode using balanced Gray code **binary** matrices over GF(2).
 ///
-/// Multiplication is performed over GF(2) using constant-weight Gray code
-/// columns, which allow efficient incremental updates via two-bit deltas.
+/// All HDPC products use XOR ([`Vector::add_inplace`](fountain_engine::algebra::linear_algebra::Vector::add_inplace)
+/// or `DataManager` add/broadcast). [`gf_poly`](fountain_engine::traits::HDPC::gf_poly) returns
+/// [`GF2_FIELD_POLY`] so the engine runs LU and inactivation
+/// in GF(2) (`manager.gf256()` is `None`). The `gf` parameter on [`HDPC::mul_binary`]
+/// is unused.
 pub struct R10HDPC;
 
 impl Default for R10HDPC {
@@ -71,6 +75,7 @@ impl HDPC for R10HDPC {
 
     fn mul_binary(
         &self,
+        _gf: Option<&GF256>,
         params: &CodeParams,
         n: usize,
         v: &dyn Fn(usize) -> Vec<u8>,
@@ -92,8 +97,8 @@ impl HDPC for R10HDPC {
 
         for i in (0..kl - 1).rev() {
             let j = gray.previous_delta();
-            BinaryVector::add_inplace(&mut result[j[0]], &tmp);
-            BinaryVector::add_inplace(&mut result[j[1]], &tmp);
+            Vector::add_inplace(&mut result[j[0]], &tmp);
+            Vector::add_inplace(&mut result[j[1]], &tmp);
             for (col, &b) in v(i).iter().enumerate() {
                 if b == 1 {
                     tmp[col] ^= 1;
@@ -102,13 +107,14 @@ impl HDPC for R10HDPC {
         }
         let j = gray.current_column_positions();
         for i in j {
-            BinaryVector::add_inplace(&mut result[i], &tmp);
+            Vector::add_inplace(&mut result[i], &tmp);
         }
         result
     }
  
     fn mul_sparse(
         &self,
+        _gf: Option<&GF256>,
         params: &CodeParams,
         n: usize,
         s: &dyn Fn(usize) -> Vec<usize>,
@@ -120,11 +126,12 @@ impl HDPC for R10HDPC {
             }
             col
         };
-        self.mul_binary(params, n, &v)
+        self.mul_binary(None, params, n, &v)
     }
 
     fn mul_sparse_sh(
         &self,
+        _gf: Option<&GF256>,
         params: &CodeParams,
         s: &dyn Fn(usize) -> Vec<usize>,
     ) -> Vec<Vec<u8>> {
@@ -146,8 +153,8 @@ impl HDPC for R10HDPC {
         for i in (0..al - 1).rev() {
             let j = gray.previous_delta();
             // Add the row to result[j[0]] and result[j[1]]
-            BinaryVector::add_inplace(&mut result[j[0]], &tmp);
-            BinaryVector::add_inplace(&mut result[j[1]], &tmp);
+            Vector::add_inplace(&mut result[j[0]], &tmp);
+            Vector::add_inplace(&mut result[j[1]], &tmp);
             if i >= a {
                 for &col in &s(i-a) {
                     tmp[col] ^= 1;
@@ -156,22 +163,38 @@ impl HDPC for R10HDPC {
         }
         let j = gray.current_column_positions();
         for i in j {
-            BinaryVector::add_inplace(&mut result[i], &tmp);
+            Vector::add_inplace(&mut result[i], &tmp);
         }
         result
+    }
+
+    /// [`GF2_FIELD_POLY`]: binary HDPC, not GF(256).
+    fn gf_poly(&self) -> u16 {
+        GF2_FIELD_POLY
+    }
+}
+
+#[cfg(test)]
+mod gf_poly_tests {
+    use super::*;
+    use fountain_engine::traits::HDPC;
+
+    #[test]
+    fn r10_hdpc_uses_gf2_field_sentinel() {
+        assert_eq!(R10HDPC::new().gf_poly(), GF2_FIELD_POLY);
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use fountain_engine::GF256;
     use fountain_engine::traits::HDPC;
     use fountain_engine::types::CodeParams;
     use fountain_engine::DataManager;
     use fountain_utility::VecDataOperater;
     use fountain_engine::types::SolverType;
     use crate::validation::*;
-
     #[test]
     fn test_hdpc_10_mul_data() {
         let h = 10;
@@ -240,7 +263,7 @@ mod tests {
             let params = CodeParams::new(k, k, l, h);
             let hdpc = R10HDPC::new();
             //validate_hdpc_mul_sparse(&hdpc, &params);
-            cross_validate_hdpc(&hdpc, &params);
+            cross_validate_hdpc(&hdpc, &params, &GF256::default());
         }
     }
 }

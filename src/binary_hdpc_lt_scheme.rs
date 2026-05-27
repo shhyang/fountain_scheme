@@ -4,7 +4,7 @@
 use crate::degree_sets::asymp_optimal_cdf;
 use crate::degree_sets::validate_cdf;
 use crate::degree_sets::RaptorDegreeSetGenerator;
-use crate::parameters::rq_like;
+use crate::parameters::r10;
 use crate::precodes::R10HDPC;
 use crate::precodes::R10LDPC;
 use crate::types::ProbValue;
@@ -14,6 +14,8 @@ use crate::types::PseudoRandom;
 ///
 /// Same R10-style parameters and degree-set construction as [`HDPCLTCode`](crate::HDPCLTCode),
 /// but uses [`R10LDPC`](crate::precodes::R10LDPC) / [`R10HDPC`](crate::precodes::R10HDPC).
+/// HDPC is over GF(2) ([`GF2_FIELD_POLY`](fountain_engine::types::GF2_FIELD_POLY)); precoding
+/// and inactivation LU use XOR, not GF(256) scalar multiply.
 /// Defaults to [`CodeType::Ordinary`] (same as [`HDPCLTCode`](crate::HDPCLTCode)); call [`Self::as_systematic`]
 /// for systematic degree sets and systematic encoder/decoder behavior.
 use fountain_engine::traits::{CodeScheme, HDPC, LDPC};
@@ -29,7 +31,7 @@ pub struct BinaryHDPCLTCode<R: PseudoRandom> {
 }
 
 fn hdpc_sys_code_params(k: usize) -> CodeParams {
-    rq_like::generate_rq_like_parameters(k)
+    r10::generate_r10_parameters(k)
 }
 
 impl<R: PseudoRandom> BinaryHDPCLTCode<R> {

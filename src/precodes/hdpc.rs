@@ -3,6 +3,7 @@
 
 use fountain_engine::DataManager;
 use fountain_engine::algebra::finite_field::GF256;
+use fountain_engine::algebra::linear_algebra::Vector;
 use fountain_engine::traits::HDPC;
 use fountain_engine::types::CodeParams;
 //use rand::{Rng, SeedableRng, rngs::StdRng};
@@ -65,15 +66,15 @@ fn rq_mul_binary(
 
     for i in 0..kl - 1 {
         let j = delta_column(i);
-        gf.vector_addition_inplace(&mut result[j[0]], &tmp);
-        gf.vector_addition_inplace(&mut result[j[1]], &tmp);
-        gf.multiply_alpha_inplace(&mut tmp);
+        Vector::add_inplace(&mut result[j[0]], &tmp);
+        Vector::add_inplace(&mut result[j[1]], &tmp);
+        Vector::multiply_alpha_inplace(gf, &mut tmp);
         let next = v(i + 1);
-        gf.vector_addition_inplace(&mut tmp, &next);
+        Vector::add_inplace(&mut tmp, &next);
     }
     for i in 0..h {
-        gf.vector_addition_inplace(&mut result[i], &tmp);
-        gf.multiply_alpha_inplace(&mut tmp);
+        Vector::add_inplace(&mut result[i], &tmp);
+        Vector::multiply_alpha_inplace(gf, &mut tmp);
     }
     result
 }
@@ -95,16 +96,16 @@ fn rq_mul_sparse_sh(
     for i in 0..lb - 1 {
         let j = delta_column(a + i);
         // Add the row to result[j[0]] and result[j[1]]
-        gf.vector_addition_inplace(&mut result[j[0]], &tmp);
-        gf.vector_addition_inplace(&mut result[j[1]], &tmp);
-        gf.multiply_alpha_inplace(&mut tmp);
+        Vector::add_inplace(&mut result[j[0]], &tmp);
+        Vector::add_inplace(&mut result[j[1]], &tmp);
+        Vector::multiply_alpha_inplace(gf, &mut tmp);
         if i < l - 1 {
             s(i + 1).iter().for_each(|&col| tmp[col] ^= 1);
         }
     }
     for i in 0..h {
-        gf.vector_addition_inplace(&mut result[i], &tmp);
-        gf.multiply_alpha_inplace(&mut tmp);
+        Vector::add_inplace(&mut result[i], &tmp);
+        Vector::multiply_alpha_inplace(gf, &mut tmp);
     }
     result
 }
@@ -173,6 +174,10 @@ impl GenericRQHDPC {
 }
 
 impl HDPC for GenericRQHDPC {
+    fn gf_poly(&self) -> u16 {
+        0x11D
+    }
+
     fn mul_data(
         &self,
         manager: &mut DataManager,
@@ -186,16 +191,18 @@ impl HDPC for GenericRQHDPC {
 
     fn mul_binary(
         &self,
+        gf: Option<&GF256>,
         params: &CodeParams,
         n: usize,
         v: &dyn Fn(usize) -> Vec<u8>,
     ) -> Vec<Vec<u8>> {
         let delta_column = |j: usize| (self.delta_column_fn)(j);
-        rq_mul_binary(&GF256::default(), params, n, v, &delta_column)
+        rq_mul_binary(gf.unwrap(), params, n, v, &delta_column)
     }
 
     fn mul_sparse(
         &self,
+        gf: Option<&GF256>,
         params: &CodeParams,
         n: usize,
         s: &dyn Fn(usize) -> Vec<usize>,
@@ -207,16 +214,17 @@ impl HDPC for GenericRQHDPC {
             }
             col
         };
-        self.mul_binary(params, n, &v)
+        self.mul_binary(gf, params, n, &v)
     }
 
     fn mul_sparse_sh(
         &self,
+        gf: Option<&GF256>,
         params: &CodeParams,
         s: &dyn Fn(usize) -> Vec<usize>,
     ) -> Vec<Vec<u8>> {
         let delta_column = |j: usize| (self.delta_column_fn)(j);
-        rq_mul_sparse_sh(&GF256::default(), params, s, &delta_column)
+        rq_mul_sparse_sh(gf.unwrap(), params, s, &delta_column)
     }
 }
 
@@ -225,6 +233,15 @@ impl HDPC for GenericRQHDPC {
 #[must_use]
 pub fn default_rq_hdpc(h: usize) -> Box<dyn HDPC> {
     let delta_column_fn = Box::new(move |j: usize| vec![j % h, (j + 1) % h]);
+    rq_hdpc(delta_column_fn)
+}
+
+/// Raptor-Q / RFC 6330-style HDPC over GF(256) (`gf_poly` default `0x11D`).
+///
+/// `delta_column_fn(j)` returns the two row indices for column `j` of the sparse matrix \(\Delta\)
+/// (RFC 6330 §5.3.3.4 when built with the RFC `Rand` function).
+#[must_use]
+pub fn rq_hdpc(delta_column_fn: Box<dyn Fn(usize) -> Vec<usize>>) -> Box<dyn HDPC> {
     Box::new(GenericRQHDPC::new(delta_column_fn))
 }
 
@@ -386,6 +403,7 @@ mod tests {
         }
     }
 
+    #[allow(deprecated)]
     fn cross_validate_mul_binary(params: &CodeParams, n: usize) {
         let kl = params.num_message_ldpc();
         let hdpc = default_rq_hdpc(params.h);
@@ -401,8 +419,9 @@ mod tests {
                 .collect::<Vec<_>>()
         };
 
-        let result_binary = hdpc.mul_binary(params, n, &v);
-        let result_sparse = hdpc.mul_sparse(params, n, &s);
+        let field = GF256::default();
+        let result_binary = hdpc.mul_binary(Some(&field), params, n, &v);
+        let result_sparse = hdpc.mul_sparse(Some(&field), params, n, &s);
 
         assert_eq!(result_binary, result_sparse);
     }
@@ -459,7 +478,7 @@ mod tests {
                 vec![pos1, pos2]
             });
             let hdpc = GenericRQHDPC::new(random_pair);
-            cross_validate_hdpc(&hdpc, &params);
+            cross_validate_hdpc(&hdpc, &params, &GF256::default());
         }
     }
 }

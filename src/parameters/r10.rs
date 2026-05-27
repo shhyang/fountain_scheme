@@ -16,7 +16,7 @@ pub fn generate_r10_parameters(k: usize) -> CodeParams {
     let l_target = (0.01 * k as f64 + x as f64).ceil() as usize;
     let l = smallest_prime_ge(l_target.max(2));
     let h = smallest_h_for_hdpc(k + l);
-    CodeParams::new_without_pre_inact(k, k, l, h)
+    CodeParams::new_without_pre_inact(k, l, h)
 }
 
 pub(crate) fn smallest_x_for_ldpc(k: usize) -> usize {

@@ -1,8 +1,7 @@
 // Copyright (c) 2025 Shenghao Yang. All rights reserved.
 // Licensed under the MIT License. See LICENSE-MIT for details.
 
-use fountain_engine::decoder::Decoder;
-use fountain_engine::encoder::Encoder;
+use fountain_engine::{Decoder, Encoder};
 use fountain_engine::traits::*;
 use fountain_engine::types::*;
 use fountain_scheme::validation::pseudo_rand::XorShift64;
