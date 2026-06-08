@@ -1,11 +1,11 @@
 // Copyright (c) 2025 Shenghao Yang. All rights reserved.
 // Licensed under the MIT License. See LICENSE-MIT for details.
 
-use fountain_engine::{Decoder, Encoder};
 use fountain_engine::traits::*;
 use fountain_engine::types::*;
+use fountain_engine::{Decoder, Encoder};
 use fountain_scheme::validation::pseudo_rand::XorShift64;
-use fountain_scheme::{RandomLTCode, DeterministicLTCode};
+use fountain_scheme::{DeterministicLTCode, RandomLTCode};
 use fountain_utility::VecDataOperater;
 
 /// We test the library for LT code with no precode.
@@ -27,7 +27,7 @@ fn test_lt_ideal() {
     // encoder
     let config = RandomLTCode::new_from_robust_soliton(k, XorShift64::new(0x00C0_FFEE));
     // Record encoding operations in basic_manager
-    let mut encoder = Encoder::new_with_operator(config.clone(), Box::new(vec_data_operater));
+    let mut encoder = Encoder::new_with_operator(&config, Box::new(vec_data_operater));
 
     let coded_ids = k..k * 3;
     // encode the coded vectors
@@ -36,7 +36,7 @@ fn test_lt_ideal() {
     }
 
     // decoding
-    let mut decoder = Decoder::new_with_operator(config.clone(), Box::new(VecDataOperater::new(t)));
+    let mut decoder = Decoder::new_with_operator(&config, Box::new(VecDataOperater::new(t)));
 
     for coded_id in coded_ids.clone() {
         let coded_vector = encoder.manager.get_coded_vector(coded_id);
@@ -55,7 +55,6 @@ fn test_lt_ideal() {
         assert_eq!(&dec_data_operater.get_vector(i), &message_vectors[i]);
     }
 }
-
 
 /// We test the library for LT code with no precode.
 #[test]
@@ -76,7 +75,7 @@ fn test_deterministic_lt_ideal() {
     // encoder
     let config = DeterministicLTCode::new_from_robust_soliton(k);
     // Record encoding operations in basic_manager
-    let mut encoder = Encoder::new_with_operator(config.clone(), Box::new(vec_data_operater));
+    let mut encoder = Encoder::new_with_operator(&config, Box::new(vec_data_operater));
 
     let coded_ids = k..k * 3;
     // encode the coded vectors
@@ -85,7 +84,7 @@ fn test_deterministic_lt_ideal() {
     }
 
     // decoding
-    let mut decoder = Decoder::new_with_operator(config.clone(), Box::new(VecDataOperater::new(t)));
+    let mut decoder = Decoder::new_with_operator(&config, Box::new(VecDataOperater::new(t)));
 
     for coded_id in coded_ids.clone() {
         let coded_vector = encoder.manager.get_coded_vector(coded_id);

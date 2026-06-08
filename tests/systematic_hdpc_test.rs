@@ -1,11 +1,11 @@
 // Copyright (c) 2025 Shenghao Yang. All rights reserved.
 // Licensed under the MIT License. See LICENSE-MIT for details.
 
-use fountain_engine::{Decoder, Encoder};
 use fountain_engine::traits::*;
 use fountain_engine::types::*;
-use fountain_scheme::validation::pseudo_rand::XorShift64;
+use fountain_engine::{Decoder, Encoder};
 use fountain_scheme::HDPCLTCode;
+use fountain_scheme::validation::pseudo_rand::XorShift64;
 use fountain_utility::VecDataOperater;
 
 /// [`HDPCLTCode::as_systematic`] must flip [`CodeScheme::code_type`] (regression guard).
@@ -41,7 +41,7 @@ fn test_systematic_hdpc_lt_roundtrip() {
 
     let params = config.get_params();
 
-    let mut encoder = Encoder::new_with_operator(config.clone(), Box::new(vec_data_operater));
+    let mut encoder = Encoder::new_with_operator(&config, Box::new(vec_data_operater));
 
     for coded_id in 0..k {
         encoder.encode_coded_vector(coded_id);
@@ -51,7 +51,7 @@ fn test_systematic_hdpc_lt_roundtrip() {
         encoder.encode_coded_vector(coded_id);
     }
 
-    let mut decoder = Decoder::new_with_operator(config.clone(), Box::new(VecDataOperater::new(t)));
+    let mut decoder = Decoder::new_with_operator(&config, Box::new(VecDataOperater::new(t)));
 
     let mut last = DecodeStatus::NotDecoded;
     for coded_id in 0..k {

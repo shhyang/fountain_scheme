@@ -1,11 +1,11 @@
 // Copyright (c) 2025 Shenghao Yang. All rights reserved.
 // Licensed under the MIT License. See LICENSE-MIT for details.
 
-use fountain_engine::{Decoder, Encoder};
 use fountain_engine::traits::*;
 use fountain_engine::types::*;
-use fountain_scheme::validation::pseudo_rand::XorShift64;
+use fountain_engine::{Decoder, Encoder};
 use fountain_scheme::LDPCLTCode;
+use fountain_scheme::validation::pseudo_rand::XorShift64;
 use fountain_utility::VecDataOperater;
 
 /// LT encoding with R10-style LDPC precode: round-trip through encoder/decoder.
@@ -29,7 +29,7 @@ fn test_ldpc_precode() {
     let config = LDPCLTCode::new_with_ideal_soliton(k, XorShift64::new(0x00C0_FFEE));
     let params = config.get_params();
 
-    let mut encoder = Encoder::new_with_operator(config.clone(), Box::new(vec_data_operater));
+    let mut encoder = Encoder::new_with_operator(&config, Box::new(vec_data_operater));
 
     // Fountain symbols use coded_id >= num_total() (indices below that are message / LDPC / HDPC slots).
     let coded_ids = params.num_total()..params.num_total() + k * 3;
@@ -37,7 +37,7 @@ fn test_ldpc_precode() {
         encoder.encode_coded_vector(coded_id);
     }
 
-    let mut decoder = Decoder::new_with_operator(config.clone(), Box::new(VecDataOperater::new(t)));
+    let mut decoder = Decoder::new_with_operator(&config, Box::new(VecDataOperater::new(t)));
 
     let mut last = DecodeStatus::NotDecoded;
     for coded_id in coded_ids.clone() {

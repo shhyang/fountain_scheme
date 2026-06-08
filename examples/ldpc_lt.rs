@@ -6,9 +6,9 @@
 //! This example demonstrates LDPC-LT codes using the new LDPCLTCode struct.
 //! This provides a cleaner, more direct implementation compared to using CodeConfig.
 
-use fountain_scheme::validation::pseudo_rand::XorShift64;
-use fountain_scheme::LDPCLTCode;
 use fountain_engine::*;
+use fountain_scheme::LDPCLTCode;
+use fountain_scheme::validation::pseudo_rand::XorShift64;
 use fountain_utility::VecDataOperater;
 
 fn main() {
@@ -63,7 +63,7 @@ fn main() {
     println!("    LDPC symbols: {}", params.l);
 
     // Create encoder
-    let mut encoder = Encoder::new_with_operator(ldpc_lt_code.clone(), Box::new(vec_data_operater));
+    let mut encoder = Encoder::new_with_operator(&ldpc_lt_code, Box::new(vec_data_operater));
 
     // Generate coded symbols - LDPC-LT codes are more efficient than pure LT
     let num_coded_symbols = k * 2 + 20; // 2x overhead + buffer
@@ -107,7 +107,10 @@ fn main() {
         );
 
         // Setup decoder
-        let mut decoder = Decoder::new_with_operator(ldpc_lt_code.clone(), Box::new(VecDataOperater::new(symbol_size)));
+        let mut decoder = Decoder::new_with_operator(
+            &ldpc_lt_code,
+            Box::new(VecDataOperater::new(symbol_size)),
+        );
 
         println!("Starting LDPC-LT decoding...");
 

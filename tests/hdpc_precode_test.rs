@@ -1,11 +1,11 @@
 // Copyright (c) 2025 Shenghao Yang. All rights reserved.
 // Licensed under the MIT License. See LICENSE-MIT for details.
 
-use fountain_engine::{Decoder, Encoder};
 use fountain_engine::traits::*;
 use fountain_engine::types::*;
-use fountain_scheme::validation::pseudo_rand::XorShift64;
+use fountain_engine::{Decoder, Encoder};
 use fountain_scheme::HDPCLTCode;
+use fountain_scheme::validation::pseudo_rand::XorShift64;
 use fountain_utility::VecDataOperater;
 
 /// Integration test: ordinary HDPC-LT encode/decode with R10 precoding.
@@ -44,7 +44,7 @@ fn test_hdpc_precode(k: usize, offset: usize) {
     // println!("num_pre_inactive: {}", params.num_pre_inactive());
 
     // Record encoding operations in basic_manager
-    let mut encoder = Encoder::new_with_operator(config.clone(), Box::new(vec_data_operater));
+    let mut encoder = Encoder::new_with_operator(&config, Box::new(vec_data_operater));
 
     let total_num = params.num_total();
     let coded_ids = total_num + offset..total_num + 3 * k + offset;
@@ -54,7 +54,7 @@ fn test_hdpc_precode(k: usize, offset: usize) {
     }
 
     // decoder
-    let mut decoder = Decoder::new_with_operator(config.clone(), Box::new(VecDataOperater::new(t)));
+    let mut decoder = Decoder::new_with_operator(&config, Box::new(VecDataOperater::new(t)));
 
     for coded_id in coded_ids {
         let coded_vector = encoder.manager.get_coded_vector(coded_id);

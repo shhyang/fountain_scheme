@@ -7,9 +7,9 @@
 //! LT codes are the foundation of fountain coding, providing rateless erasure
 //! correction without precoding.
 
-use fountain_scheme::validation::pseudo_rand::XorShift64;
-use fountain_scheme::RandomLTCode;
 use fountain_engine::*;
+use fountain_scheme::RandomLTCode;
+use fountain_scheme::validation::pseudo_rand::XorShift64;
 use fountain_utility::VecDataOperater;
 
 fn main() {
@@ -63,7 +63,7 @@ fn main() {
     println!("    Total symbols: {}", params.num_total());
 
     // Create encoder
-    let mut encoder = Encoder::new_with_operator(lt_code.clone(), Box::new(vec_data_operater));
+    let mut encoder = Encoder::new_with_operator(&lt_code, Box::new(vec_data_operater));
 
     // Generate coded symbols - LT codes typically need more overhead than LDPC-LT
     let num_coded_symbols = k * 2 + 20; // 2x overhead + buffer
@@ -107,7 +107,10 @@ fn main() {
         );
 
         // Setup decoder
-        let mut decoder = Decoder::new_with_operator(lt_code.clone(), Box::new(VecDataOperater::new(symbol_size)));
+        let mut decoder = Decoder::new_with_operator(
+            &lt_code,
+            Box::new(VecDataOperater::new(symbol_size)),
+        );
 
         println!("Starting LT decoding...");
 

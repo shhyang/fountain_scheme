@@ -1,15 +1,15 @@
 // Copyright (c) 2025 Shenghao Yang. All rights reserved.
 // Licensed under the MIT License. See LICENSE-MIT for details.
 
-use fountain_engine::{Decoder, Encoder};
 use fountain_engine::traits::*;
 use fountain_engine::types::*;
+use fountain_engine::{Decoder, Encoder};
+use fountain_scheme::BinaryHDPCLTCode;
 use fountain_scheme::degree_sets::asymp_optimal_cdf;
 use fountain_scheme::validation::pseudo_rand::XorShift64;
-use fountain_scheme::BinaryHDPCLTCode;
 use fountain_utility::VecDataOperater;
 
-/// Ordinary mode via [`BinaryHDPCLTCode::new_with_ideal_soliton`] 
+/// Ordinary mode via [`BinaryHDPCLTCode::new_with_ideal_soliton`]
 #[test]
 fn test_binary_hdpc_lt_ordinary() {
     for k in 12..21 {
@@ -20,7 +20,7 @@ fn test_binary_hdpc_lt_ordinary() {
     }
 }
 
-/// Ordinary mode via explicit CDF from [`BinaryHDPCLTCode::new`] 
+/// Ordinary mode via explicit CDF from [`BinaryHDPCLTCode::new`]
 #[test]
 fn test_binary_hdpc_lt_ordinary_from_new_cdf() {
     for k in 12..21 {
@@ -49,7 +49,7 @@ fn test_binary_hdpc_lt_roundtrip(config: &BinaryHDPCLTCode<XorShift64>, k: usize
 
     let params = config.get_params();
 
-    let mut encoder = Encoder::new_with_operator(config.clone(), Box::new(vec_data_operater));
+    let mut encoder = Encoder::new_with_operator(config, Box::new(vec_data_operater));
 
     let total_num = params.num_total();
     let coded_ids = total_num + offset..total_num + 3 * k + offset;
@@ -58,7 +58,7 @@ fn test_binary_hdpc_lt_roundtrip(config: &BinaryHDPCLTCode<XorShift64>, k: usize
         encoder.encode_coded_vector(coded_id);
     }
 
-    let mut decoder = Decoder::new_with_operator(config.clone(), Box::new(VecDataOperater::new(t)));
+    let mut decoder = Decoder::new_with_operator(config, Box::new(VecDataOperater::new(t)));
 
     for coded_id in coded_ids {
         let coded_vector = encoder.manager.get_coded_vector(coded_id);
