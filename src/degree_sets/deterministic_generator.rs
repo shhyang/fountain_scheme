@@ -15,7 +15,7 @@ use super::set_sampling::CyclicStrideDegreeSets;
 /// `coded_id = 0, 1, 2, …` in order. The first call loads the block `[0, k)`; if the first call
 /// uses another `coded_id`, earlier indices are skipped and the stride state does not include them.
 pub struct CyclicStrideDegreeSetGenerator {
-    k: usize, 
+    k: usize,
     degree_values: DeterministicDegreeValues,
     sampler: CyclicStrideDegreeSets,
     current_range: (usize, usize),
@@ -29,7 +29,13 @@ impl CyclicStrideDegreeSetGenerator {
     pub fn new(k: usize, cdf: Vec<u32>) -> Self {
         let degree_values = DeterministicDegreeValues::new_from_cdf(cdf);
         let sampler = CyclicStrideDegreeSets::new(k);
-        Self { k, degree_values, sampler, current_range: (0, 0), current_degree_set: Vec::new() }
+        Self {
+            k,
+            degree_values,
+            sampler,
+            current_range: (0, 0),
+            current_degree_set: Vec::new(),
+        }
     }
 
     /// Returns the active index set for `coded_id`, cloning from the current block cache when hit.
@@ -38,7 +44,9 @@ impl CyclicStrideDegreeSetGenerator {
         if coded_id >= start && coded_id < end {
             self.current_degree_set[coded_id - start].clone()
         } else {
-            let degree = self.degree_values.additional_degrees(coded_id as u32, coded_id as u32 + self.k as u32);
+            let degree = self
+                .degree_values
+                .additional_degrees(coded_id as u32, coded_id as u32 + self.k as u32);
             self.current_range = (coded_id, coded_id + self.k);
             self.current_degree_set = self.sampler.sample_sets(&degree);
             self.current_degree_set[0].clone()
@@ -61,10 +69,7 @@ mod tests {
         let mut g = CyclicStrideDegreeSetGenerator::new(k, tiny_cdf());
         for id in 0..k {
             let s = g.degree_set(id);
-            assert!(
-                s.len() <= k,
-                "degree set size should not exceed k"
-            );
+            assert!(s.len() <= k, "degree set size should not exceed k");
         }
     }
 

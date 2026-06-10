@@ -1,12 +1,12 @@
 // Copyright (c) 2025 Shenghao Yang. All rights reserved.
 // Licensed under the MIT License. See LICENSE-MIT for details.
 
+use crate::degree_sets::RaptorDegreeSetGenerator;
 use crate::degree_sets::asymp_optimal_cdf;
 use crate::degree_sets::validate_cdf;
-use crate::degree_sets::RaptorDegreeSetGenerator;
 use crate::parameters::rq_like;
-use crate::precodes::default_rq_hdpc;
 use crate::precodes::RQLDPC;
+use crate::precodes::default_rq_hdpc;
 use crate::types::ProbValue;
 use crate::types::PseudoRandom;
 
@@ -17,7 +17,7 @@ use crate::types::PseudoRandom;
 use fountain_engine::traits::{CodeScheme, HDPC, LDPC};
 use fountain_engine::types::{CodeParams, CodeType, DecodingConfig, DegreeSetFn};
 
-/// HDPC-LT code: R10 parameters (nonzero `l` and `h`), and default cyclic HDPC.
+/// HDPC-LT code: R10 parameters (nonzero `l` and `h`), [`R10LDPC`](crate::precodes::R10LDPC), and default cyclic HDPC.
 #[derive(Clone)]
 pub struct HDPCLTCode<R: PseudoRandom> {
     degree_cdf: Vec<ProbValue>,
@@ -90,7 +90,8 @@ impl<R: PseudoRandom + 'static> CodeScheme for HDPCLTCode<R> {
 
     fn create_precode(&self) -> (Option<Box<dyn HDPC>>, Option<Box<dyn LDPC>>) {
         let hdpc = (self.params.h > 0).then(|| default_rq_hdpc(self.params.h));
-        let ldpc = (self.params.l > 0).then(|| Box::new(RQLDPC::new(&self.params)) as Box<dyn LDPC>);
+        let ldpc =
+            (self.params.l > 0).then(|| Box::new(RQLDPC::new(&self.params)) as Box<dyn LDPC>);
         (hdpc, ldpc)
     }
 

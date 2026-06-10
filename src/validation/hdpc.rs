@@ -1,11 +1,11 @@
 // Copyright (c) 2026 Shenghao Yang.
 // All rights reserved.
 
+use fountain_engine::DataManager;
+use fountain_engine::GF256;
 use fountain_engine::traits::HDPC;
 use fountain_engine::types::CodeParams;
 use fountain_engine::types::SolverType;
-use fountain_engine::DataManager;
-use fountain_engine::GF256;
 use fountain_utility::VecDataOperater;
 
 /// Validates that `mul_sparse_sh` and `mul_binary` produce consistent results for \(`D_s` `S_h`\).
@@ -85,13 +85,9 @@ pub fn validate_hdpc_mul_sparse<T: HDPC + ?Sized>(
 
         for j in 0..h {
             assert_eq!(
-                result_mul_sparse_sh[i][j],
-                result_mul_binary[i][j],
+                result_mul_sparse_sh[i][j], result_mul_binary[i][j],
                 "HDPC validation failed: mul_sparse_sh and mul_binary differ at position ({}, {}) for D_s S_h: {} vs {}",
-                i,
-                j,
-                result_mul_sparse_sh[i][j],
-                result_mul_binary[i][j]
+                i, j, result_mul_sparse_sh[i][j], result_mul_binary[i][j]
             );
         }
     }
@@ -120,7 +116,10 @@ pub fn validate_hdpc_mul_data<T: HDPC + ?Sized>(
     let kl = params.num_message_ldpc();
     let vector_length = matrix_x[0].len();
 
-    assert!(kl == matrix_x.len(), "HDPC validation failed: kl != matrix_x.len()");
+    assert!(
+        kl == matrix_x.len(),
+        "HDPC validation failed: kl != matrix_x.len()"
+    );
 
     // Case I: X is a (k+l)-row matrix
     let v = |row: usize| -> Vec<u8> { matrix_x[row].clone() };
@@ -173,13 +172,9 @@ pub fn validate_hdpc_mul_data<T: HDPC + ?Sized>(
 
         for j in 0..vector_length {
             assert_eq!(
-                result_mul_binary_dx[i][j],
-                result_mul_data[i][j],
+                result_mul_binary_dx[i][j], result_mul_data[i][j],
                 "HDPC validation failed: mul_binary and mul_data differ at position ({}, {}) for D*X: {} vs {}",
-                i,
-                j,
-                result_mul_binary_dx[i][j],
-                result_mul_data[i][j]
+                i, j, result_mul_binary_dx[i][j], result_mul_data[i][j]
             );
         }
     }
@@ -212,8 +207,10 @@ pub fn validate_hdpc_mul_data<T: HDPC + ?Sized>(
         manager.ensure_zero(&[id]);
     }
     hdpc.mul_data(&mut manager, params, &x_ids, &y_ids);
-    let result_mul_data_2: Vec<Vec<u8>> =
-        y_ids.iter().map(|&id| manager.get_data_vector(id).to_vec()).collect();
+    let result_mul_data_2: Vec<Vec<u8>> = y_ids
+        .iter()
+        .map(|&id| manager.get_data_vector(id).to_vec())
+        .collect();
 
     // Compare results
     for i in 0..h {
@@ -236,13 +233,9 @@ pub fn validate_hdpc_mul_data<T: HDPC + ?Sized>(
 
         for j in 0..vector_length {
             assert_eq!(
-                result_mul_binary_dx_2[i][j],
-                result_mul_data_2[i][j],
+                result_mul_binary_dx_2[i][j], result_mul_data_2[i][j],
                 "HDPC validation failed: `mul_binary` and `mul_data` differ at position ({}, {}) for D*X': {} vs {}",
-                i,
-                j,
-                result_mul_binary_dx_2[i][j],
-                result_mul_data_2[i][j]
+                i, j, result_mul_binary_dx_2[i][j], result_mul_data_2[i][j]
             );
         }
     }
@@ -281,4 +274,3 @@ pub fn cross_validate_hdpc<T: HDPC + ?Sized>(hdpc: &T, params: &CodeParams, gf: 
     }
     validate_hdpc_mul_data(hdpc, params, &matrix_x, gf);
 }
-

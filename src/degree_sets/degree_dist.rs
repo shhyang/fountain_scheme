@@ -27,7 +27,7 @@ pub fn robust_soliton_pdf(m: usize, dmax: usize, c: f64, delta: f64) -> Vec<Prob
 }
 
 pub fn ideal_soliton_cdf(m: usize, dmax: usize) -> Vec<ProbValue> {
-    let mut cdf = vec![0usize; dmax+1];
+    let mut cdf = vec![0usize; dmax + 1];
     cdf[1] = m / dmax;
     for i in 2..dmax {
         cdf[i] = m - m / i + cdf[1];
@@ -41,7 +41,7 @@ pub fn robust_soliton_cdf(m: usize, dmax: usize, c: f64, delta: f64) -> Vec<Prob
         .iter()
         .map(|x| *x as f64 / m as f64)
         .collect::<Vec<f64>>();
-    
+
     let kf = dmax as f64;
     let r = (kf.sqrt() * c * (kf / delta).ln()).max(1.0);
     let upper = (kf / r).ceil() as usize;
@@ -56,7 +56,7 @@ pub fn robust_soliton_cdf(m: usize, dmax: usize, c: f64, delta: f64) -> Vec<Prob
 
     let mut cdf = vec![0.0; dmax + 1];
     for i in 1..=dmax {
-        cdf[i] = cdf[i-1] + ideal_pdf[i] + tau[i];
+        cdf[i] = cdf[i - 1] + ideal_pdf[i] + tau[i];
     }
     let a = cdf[dmax] as f64;
     let mut cdf32 = vec![0u32; dmax + 1];
@@ -64,7 +64,7 @@ pub fn robust_soliton_cdf(m: usize, dmax: usize, c: f64, delta: f64) -> Vec<Prob
         cdf32[i] = (cdf[i] / a * m as f64) as u32;
     }
     cdf32[dmax] = m as u32;
-    if cdf32[dmax-1] > cdf32[dmax] {
+    if cdf32[dmax - 1] > cdf32[dmax] {
         panic!("Invalid degree distribution: cdf[dmax-1] > cdf[dmax]");
     }
     cdf32
@@ -93,22 +93,19 @@ pub fn asymp_optimal_cdf(m: usize, d1: usize, dmax: usize) -> Vec<ProbValue> {
 }
 
 /// Implement the Raptor10 and RaptorQ degree distribution.
-pub const RAPTOR10_CDF: [ProbValue; 8] = [
-    0, 10241, 491582, 712794, 831695, 948446, 1032189, 1048576
-];
+pub const RAPTOR10_CDF: [ProbValue; 8] =
+    [0, 10241, 491582, 712794, 831695, 948446, 1032189, 1048576];
 
 pub const RAPTORQ_CDF: [ProbValue; 31] = [
-    0, 5243, 529531, 704294, 791675, 844104, 879057, 904023, 
-    922747, 937111, 948962, 958494, 966438, 973160, 978921,
-    983914, 988283, 992138, 995565, 998631, 1001391, 1003887, 
-    1006157, 1008229, 1010129, 1011876, 1013490, 1014983, 1016370, 
-    1017662, 1048576
+    0, 5243, 529531, 704294, 791675, 844104, 879057, 904023, 922747, 937111, 948962, 958494,
+    966438, 973160, 978921, 983914, 988283, 992138, 995565, 998631, 1001391, 1003887, 1006157,
+    1008229, 1010129, 1011876, 1013490, 1014983, 1016370, 1017662, 1048576,
 ];
 
 pub fn cdf_to_pdf(cdf: &[ProbValue]) -> Vec<ProbValue> {
     let mut pdf = vec![0u32; cdf.len()];
     for i in 1..cdf.len() {
-        pdf[i] = cdf[i] - cdf[i-1];
+        pdf[i] = cdf[i] - cdf[i - 1];
     }
     pdf
 }
@@ -116,13 +113,13 @@ pub fn cdf_to_pdf(cdf: &[ProbValue]) -> Vec<ProbValue> {
 pub fn pdf_to_cdf(pdf: &[ProbValue]) -> Vec<ProbValue> {
     let mut cdf = vec![0u32; pdf.len()];
     for i in 1..pdf.len() {
-        cdf[i] = cdf[i-1] + pdf[i];
+        cdf[i] = cdf[i - 1] + pdf[i];
     }
     cdf
 }
 
 /// Validate the PDF of a degree distribution.
-/// The PDF is a vector of integers of `m` bits, 
+/// The PDF is a vector of integers of `m` bits,
 /// where the sum of the PDF is equal to the largest integer of `m` bits.
 /// For a degree distribution, we always have `pdf[0] = 0`.
 pub fn validate_pdf(pdf: &[ProbValue], m: usize) -> bool {
@@ -140,11 +137,11 @@ pub fn validate_pdf(pdf: &[ProbValue], m: usize) -> bool {
 }
 
 /// Validate the CDF of a degree distribution.
-/// The CDF is a vector of integers of `m` bits, 
+/// The CDF is a vector of integers of `m` bits,
 /// where the last element is the largest integer of `m` bits.
 /// The first element is 0.
 /// The CDF is non-decreasing.
-pub fn validate_cdf(cdf: &[ProbValue], m: usize) -> bool {  
+pub fn validate_cdf(cdf: &[ProbValue], m: usize) -> bool {
     if cdf.len() < 2 {
         return false;
     }
@@ -176,9 +173,9 @@ pub fn validate_cdf(cdf: &[ProbValue], m: usize) -> bool {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use rand::rngs::StdRng;
     use rand::Rng;
     use rand::SeedableRng;
+    use rand::rngs::StdRng;
 
     #[test]
     fn test_raptor10_cdf() {

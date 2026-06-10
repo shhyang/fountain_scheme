@@ -2,31 +2,31 @@
 // Licensed under the MIT License. See LICENSE-MIT for details.
 
 use crate::degree_sets::{
-    ideal_soliton_cdf, robust_soliton_cdf, RaptorDegreeSetGenerator, CyclicStrideDegreeSetGenerator,
+    CyclicStrideDegreeSetGenerator, RaptorDegreeSetGenerator, ideal_soliton_cdf, robust_soliton_cdf,
 };
 use crate::types::PseudoRandom;
 
+use crate::degree_sets::validate_cdf;
+use crate::types::ProbValue;
 /// *Fountain Code Schemes*
 ///
 /// This module contains the implementation of the fountain code schemes.
 use fountain_engine::traits::CodeScheme;
 use fountain_engine::types::{CodeParams, CodeType, DecodingConfig};
-use crate::types::ProbValue;
-use crate::degree_sets::validate_cdf;
 
 /// Random LT Code implementation
 ///
 /// This struct provides a random LT code implementation using ideal soliton
 /// degree distribution for efficient fountain coding.
 #[derive(Clone)]
-pub struct RandomLTCode <R: PseudoRandom> {
+pub struct RandomLTCode<R: PseudoRandom> {
     degree_cdf: Vec<ProbValue>,
     params: CodeParams,
     dec_config: DecodingConfig,
     rng: R,
 }
 
-impl <R: PseudoRandom> RandomLTCode<R> {
+impl<R: PseudoRandom> RandomLTCode<R> {
     /// Create a new Random LT Code configuration
     /// # Arguments
     /// * `k` - Number of source symbols
@@ -137,7 +137,8 @@ impl CodeScheme for DeterministicLTCode {
     }
 
     fn create_degree_set_fn(&self) -> Box<dyn FnMut(usize) -> Vec<usize>> {
-        let mut degree_set = CyclicStrideDegreeSetGenerator::new(self.params.k, self.degree_cdf.clone());
+        let mut degree_set =
+            CyclicStrideDegreeSetGenerator::new(self.params.k, self.degree_cdf.clone());
         Box::new(move |coded_id| degree_set.degree_set(coded_id))
     }
 
@@ -153,6 +154,4 @@ impl CodeScheme for DeterministicLTCode {
     fn decoding_config(&self) -> DecodingConfig {
         DecodingConfig::default()
     }
-
 }
-

@@ -24,11 +24,17 @@ pub fn sample_degree_set_with_values(k: usize, sample: &[usize]) -> Vec<usize> {
 
 /// Equal-distance sampling of degree sets.
 /// Given a sequence of \(n\) values, sample \(d\) values with equal distance.
-/// The values are sampled from \(a, a+b, a+2b, \ldots, a+(d-1)b\), 
+/// The values are sampled from \(a, a+b, a+2b, \ldots, a+(d-1)b\),
 /// where \(a\) is uniformly distributed in \(0,1,\dots, n-1\) and \(b\) is uniformly distributed in \(1,2,\dots, n-1\).
 /// Returns a vector of \(d\) values.
 /// To avoid duplications, \(d\) should not divide \(n\).
-pub fn sample_degree_set_equal_distance(k_prime: usize, k: usize, d: usize, start: usize, interval: usize) -> Vec<usize> {
+pub fn sample_degree_set_equal_distance(
+    k_prime: usize,
+    k: usize,
+    d: usize,
+    start: usize,
+    interval: usize,
+) -> Vec<usize> {
     // valid the input
     if d > k {
         panic!("d must be less than or equal to n");
@@ -56,8 +62,6 @@ pub fn sample_degree_set_equal_distance(k_prime: usize, k: usize, d: usize, star
     set
 }
 
-
-
 /// Cyclic-stride approach to sample the degree set without random number generator.
 pub struct CyclicStrideDegreeSets {
     k: usize,
@@ -75,7 +79,12 @@ impl CyclicStrideDegreeSets {
         if k == 0 {
             panic!("k must be greater than 0");
         }
-        Self { k, a: 0, b: 1, p: 0 }
+        Self {
+            k,
+            a: 0,
+            b: 1,
+            p: 0,
+        }
     }
 
     /// Sample one degree set with size `d` in `O(d)`.
@@ -86,8 +95,7 @@ impl CyclicStrideDegreeSets {
         let mut set = Vec::with_capacity(d);
         for t in 0..d {
             let q = (self.p + t) % self.k;
-            let idx =
-                ((self.a as u128 + (q as u128 * self.b as u128)) % self.k as u128) as usize;
+            let idx = ((self.a as u128 + (q as u128 * self.b as u128)) % self.k as u128) as usize;
             set.push(idx);
         }
         self.p += d;
@@ -117,4 +125,3 @@ fn gcd_usize(mut a: usize, mut b: usize) -> usize {
     }
     a
 }
-

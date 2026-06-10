@@ -1,13 +1,13 @@
 // Copyright (c) 2025 Shenghao Yang. All rights reserved.
 // Licensed under the MIT License. See LICENSE-MIT for details.
 
+use crate::degree_sets::RaptorDegreeSetGenerator;
+use crate::degree_sets::asymp_optimal_cdf;
+use crate::degree_sets::validate_cdf;
+use crate::parameters::r10;
+use crate::precodes::R10LDPC;
 use crate::types::ProbValue;
 use crate::types::PseudoRandom;
-use crate::degree_sets::validate_cdf;
-use crate::degree_sets::RaptorDegreeSetGenerator;
-use crate::precodes::R10LDPC;
-use crate::parameters::r10;
-use crate::degree_sets::asymp_optimal_cdf;
 
 /// *LDPC-LT Code Implementation*
 ///
@@ -19,12 +19,12 @@ use fountain_engine::types::{CodeParams, CodeType, DecodingConfig, DegreeSetFn};
 
 /// LDPC-LT Code implementation
 ///
-/// This struct provides an LT code implementation with 
+/// This struct provides an LT code implementation with
 /// - R10-LDPC precoding,
-/// - Raptor degree set generator, and 
+/// - Raptor degree set generator, and
 /// - R10 parameters.
 #[derive(Clone)]
-pub struct LDPCLTCode <R: PseudoRandom> {
+pub struct LDPCLTCode<R: PseudoRandom> {
     degree_cdf: Vec<ProbValue>,
     params: CodeParams,
     rng: R,
@@ -41,7 +41,7 @@ fn ldpc_lt_code_params(k: usize) -> CodeParams {
     p
 }
 
-impl <R: PseudoRandom> LDPCLTCode<R> {
+impl<R: PseudoRandom> LDPCLTCode<R> {
     /// Create a new LDPC-LT Code configuration
     ///
     /// # Arguments
@@ -74,7 +74,7 @@ impl <R: PseudoRandom> LDPCLTCode<R> {
             params,
             rng,
             code_type: CodeType::Ordinary,
-        }        
+        }
     }
 
     pub fn as_systematic(&mut self) {
@@ -82,7 +82,7 @@ impl <R: PseudoRandom> LDPCLTCode<R> {
     }
 }
 
-impl <R: PseudoRandom + 'static> CodeScheme for LDPCLTCode<R> {
+impl<R: PseudoRandom + 'static> CodeScheme for LDPCLTCode<R> {
     /// Get the code parameters
     fn get_params(&self) -> CodeParams {
         self.params.clone()

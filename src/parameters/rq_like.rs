@@ -69,7 +69,6 @@ fn nearest_a_with_prime_sum(target_a: usize, k: usize, l: usize) -> usize {
     1
 }
 
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -114,13 +113,12 @@ mod tests {
     // print the parameters for a range of k
     #[test]
     fn test_print_parameters_for_range_of_k() {
-        for k in [10, 30, 49, 60, 101, 180, 168, 573, 811, 1136, 1579, 2125, 2831, 3751, 4901, 6296, 8111, 10351, 13143, 16674, 21199, 26838, 33961, 42916, 56403] {
+        for k in [
+            10, 30, 49, 60, 101, 180, 168, 573, 811, 1136, 1579, 2125, 2831, 3751, 4901, 6296,
+            8111, 10351, 13143, 16674, 21199, 26838, 33961, 42916, 56403,
+        ] {
             let p = generate_rq_like_parameters(k);
             println!("k: {}, a: {}, l: {}, h: {}", k, p.a, p.l, p.h);
         }
     }
 }
-
-
-
-

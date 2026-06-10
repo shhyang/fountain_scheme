@@ -1,9 +1,9 @@
 // Copyright (c) 2025 Shenghao Yang. All rights reserved.
 // Licensed under the MIT License. See LICENSE-MIT for details.
 
+use crate::degree_sets::RaptorDegreeSetGenerator;
 use crate::degree_sets::asymp_optimal_cdf;
 use crate::degree_sets::validate_cdf;
-use crate::degree_sets::RaptorDegreeSetGenerator;
 use crate::parameters::r10;
 use crate::precodes::R10HDPC;
 use crate::precodes::R10LDPC;
@@ -94,7 +94,8 @@ impl<R: PseudoRandom + 'static> CodeScheme for BinaryHDPCLTCode<R> {
 
     fn create_precode(&self) -> (Option<Box<dyn HDPC>>, Option<Box<dyn LDPC>>) {
         let hdpc = (self.params.h > 0).then(|| Box::new(R10HDPC::new()) as Box<dyn HDPC>);
-        let ldpc = (self.params.l > 0).then(|| Box::new(R10LDPC::new(&self.params)) as Box<dyn LDPC>);
+        let ldpc =
+            (self.params.l > 0).then(|| Box::new(R10LDPC::new(&self.params)) as Box<dyn LDPC>);
         (hdpc, ldpc)
     }
 

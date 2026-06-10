@@ -12,7 +12,6 @@ use fountain_engine::types::CodeParams;
 pub struct NoHDPC;
 impl HDPC for NoHDPC {}
 
-
 fn rq_mul_data(
     manager: &mut DataManager,
     params: &CodeParams,
@@ -52,25 +51,25 @@ fn rq_mul_data(
     }
     manager.remove(temp_id);
 }
-fn rq_mul_binary(
+fn rq_mul_binary_from_rows(
     gf: &GF256,
     params: &CodeParams,
-    n: usize,
-    v: &dyn Fn(usize) -> Vec<u8>,
+    rows: &[Vec<u8>],
     delta_column: &dyn Fn(usize) -> Vec<usize>,
 ) -> Vec<Vec<u8>> {
     let h = params.h;
     let kl = params.num_message_ldpc();
+    assert_eq!(rows.len(), kl);
+    let n = rows[0].len();
     let mut result = vec![vec![0u8; n]; h];
-    let mut tmp = v(0);
+    let mut tmp = rows[0].clone();
 
     for i in 0..kl - 1 {
         let j = delta_column(i);
         Vector::add_inplace(&mut result[j[0]], &tmp);
         Vector::add_inplace(&mut result[j[1]], &tmp);
         Vector::multiply_alpha_inplace(gf, &mut tmp);
-        let next = v(i + 1);
-        Vector::add_inplace(&mut tmp, &next);
+        Vector::add_inplace(&mut tmp, &rows[i + 1]);
     }
     for i in 0..h {
         Vector::add_inplace(&mut result[i], &tmp);
@@ -196,8 +195,20 @@ impl HDPC for GenericRQHDPC {
         n: usize,
         v: &dyn Fn(usize) -> Vec<u8>,
     ) -> Vec<Vec<u8>> {
+        let kl = params.num_message_ldpc();
+        let rows: Vec<Vec<u8>> = (0..kl).map(v).collect();
+        debug_assert!(rows.iter().all(|row| row.len() == n));
+        self.mul_binary_from_rows(gf, params, &rows)
+    }
+
+    fn mul_binary_from_rows(
+        &self,
+        gf: Option<&GF256>,
+        params: &CodeParams,
+        rows: &[Vec<u8>],
+    ) -> Vec<Vec<u8>> {
         let delta_column = |j: usize| (self.delta_column_fn)(j);
-        rq_mul_binary(gf.unwrap(), params, n, v, &delta_column)
+        rq_mul_binary_from_rows(gf.unwrap(), params, rows, &delta_column)
     }
 
     fn mul_sparse(
@@ -326,16 +337,16 @@ impl RQHDPC {
 mod tests {
     use super::*;
     use crate::parameters::generate_rq_like_parameters;
+    use crate::validation::*;
+    use fountain_engine::CodeParams;
     use fountain_engine::algebra::finite_field::GF256;
     use fountain_engine::algebra::linear_algebra::Matrix;
     use fountain_engine::traits::DataOperator;
-    use fountain_engine::CodeParams;
     use fountain_utility::VecDataOperater;
-    use crate::validation::*;
 
     use rand::Rng;
-    use rand::rngs::StdRng;
     use rand::SeedableRng;
+    use rand::rngs::StdRng;
 
     fn gen_random_matrix(m: usize, n: usize, ffsize: u8) -> Vec<Vec<u8>> {
         let mut matrix_a = Vec::new();
@@ -421,9 +432,11 @@ mod tests {
 
         let field = GF256::default();
         let result_binary = hdpc.mul_binary(Some(&field), params, n, &v);
+        let result_from_rows = hdpc.mul_binary_from_rows(Some(&field), params, &mat_s);
         let result_sparse = hdpc.mul_sparse(Some(&field), params, n, &s);
 
         assert_eq!(result_binary, result_sparse);
+        assert_eq!(result_from_rows, result_sparse);
     }
 
     #[test]

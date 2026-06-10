@@ -5,9 +5,9 @@
 
 mod gray;
 pub mod hdpc;
-pub mod ldpc;
 pub mod hdpc_binary;
+pub mod ldpc;
 
 pub use hdpc::*;
-pub use ldpc::*;
 pub use hdpc_binary::*;
+pub use ldpc::*;

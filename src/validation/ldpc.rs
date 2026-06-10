@@ -6,11 +6,11 @@ use fountain_engine::traits::LDPC;
 /// Validates that an LDPC implementation is consistent.
 ///
 /// This function verifies that the LDPC implementation is consistent by checking:
-/// - For each row in the active matrix, the columns returned by `active_row` 
+/// - For each row in the active matrix, the columns returned by `active_row`
 ///   contain the row index when queried via `active_column`
 /// - For each row in the inactive matrix, the columns returned by `inactive_row`
 ///   contain the row index when queried via `inactive_column`
-/// # Panics 
+/// # Panics
 /// Panics if the LDPC implementation is inconsistent, with a detailed error message indicating which row/column pair failed validation.
 pub fn cross_validate_ldpc<T: LDPC>(ldpc: &T, l: usize) {
     // Validate active matrix consistency
@@ -24,7 +24,7 @@ pub fn cross_validate_ldpc<T: LDPC>(ldpc: &T, l: usize) {
             );
         }
     }
-    
+
     // Validate inactive matrix consistency
     for i in 0..l {
         let adj_checks = ldpc.inactive_row(i);

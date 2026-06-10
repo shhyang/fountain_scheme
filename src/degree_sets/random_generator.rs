@@ -14,7 +14,6 @@ use crate::math_utils::smallest_prime_ge;
 use crate::types::PseudoRandom;
 use fountain_engine::types::CodeParams;
 
-
 /// RaptorQ-style generator: **W** LT symbols (active), **P** PI symbols (inactive), **L = W + P**.
 ///
 /// - LT indices are in `[0, W)`; modulus uses `W' = smallest prime ≥ W` for equal-distance sampling.
@@ -80,7 +79,7 @@ impl<R: PseudoRandom> RaptorDegreeSetGenerator<R> {
         } else if w == 1 {
             vec![0]
         } else if self.is_systematic && coded_id < self.params.a {
-            let d_lt = d.min(coded_id+1);
+            let d_lt = d.min(coded_id + 1);
             if d_lt == 1 {
                 vec![coded_id]
             } else if coded_id == 1 {
@@ -89,7 +88,13 @@ impl<R: PseudoRandom> RaptorDegreeSetGenerator<R> {
                 let w_sys_prime = smallest_prime_ge(coded_id);
                 let interval_a = 1 + self.rng.next(w_sys_prime - 1);
                 let start_a = self.rng.next(w_sys_prime);
-                let mut set = sample_degree_set_equal_distance(w_sys_prime, coded_id, d_lt-1, start_a, interval_a);
+                let mut set = sample_degree_set_equal_distance(
+                    w_sys_prime,
+                    coded_id,
+                    d_lt - 1,
+                    start_a,
+                    interval_a,
+                );
                 set.push(coded_id);
                 set.sort();
                 set
@@ -104,12 +109,12 @@ impl<R: PseudoRandom> RaptorDegreeSetGenerator<R> {
         let inactive_set = if p == 0 {
             Vec::new()
         } else {
-            let d1 = (if d < 4 { 2 + self.rng.next(2) } else {2}).min(p);
+            let d1 = (if d < 4 { 2 + self.rng.next(2) } else { 2 }).min(p);
             let interval_b = 1 + self.rng.next(self.p_prime - 1);
             let start_b = self.rng.next(self.p_prime);
             sample_degree_set_equal_distance(self.p_prime, p, d1, start_b, interval_b)
         };
-            
+
         deg_set.extend(inactive_set.iter().map(|&i| i + w));
         deg_set
     }
@@ -136,7 +141,12 @@ impl<R: PseudoRandom> R10DegreeSetGenerator<R> {
             panic!("Invalid CDF: {:?}", cdf);
         }
         let k_prime = smallest_prime_ge(k);
-        Self { cdf, k, k_prime, rng }
+        Self {
+            cdf,
+            k,
+            k_prime,
+            rng,
+        }
     }
 
     /// Sample active degree set for one coded symbol.
@@ -169,7 +179,6 @@ impl<R: PseudoRandom> R10DegreeSetGenerator<R> {
         &mut self.rng
     }
 }
-
 
 #[cfg(test)]
 #[allow(clippy::many_single_char_names)]
@@ -226,11 +235,19 @@ mod tests {
         let l = 0;
         let h = 0;
         let w = a + l;
-        let mut g =
-            RaptorDegreeSetGenerator::new_systematic(cdf.clone(), CodeParams::new(k, a, l, h), XorShift64::new(0xACE));
+        let mut g = RaptorDegreeSetGenerator::new_systematic(
+            cdf.clone(),
+            CodeParams::new(k, a, l, h),
+            XorShift64::new(0xACE),
+        );
         for coded_id in 0..a {
             let set = g.degree_set(coded_id);
-            assert!(set.iter().all(|&i| i < w), "id {} set {:?} out of range", coded_id, set);
+            assert!(
+                set.iter().all(|&i| i < w),
+                "id {} set {:?} out of range",
+                coded_id,
+                set
+            );
             if coded_id == 0 {
                 assert_eq!(set, vec![0]);
                 continue;
@@ -273,13 +290,20 @@ mod tests {
         let l = 2;
         let h = 1;
         let w = a + l;
-        let mut g = RaptorDegreeSetGenerator::new(cdf.clone(), CodeParams::new(k, a, l, h), XorShift64::new(0xBEEF));
+        let mut g = RaptorDegreeSetGenerator::new(
+            cdf.clone(),
+            CodeParams::new(k, a, l, h),
+            XorShift64::new(0xBEEF),
+        );
         let mut g1 = R10DegreeSetGenerator::new(cdf, w, XorShift64::new(0xBEEF));
         for id in 0..30 {
             let merged = g.degree_set(id);
             let active_lt: Vec<usize> = merged.iter().copied().filter(|&i| i < w).collect();
             let active1 = g1.degree_set(id);
-            assert_eq!(active_lt, active1, "LT active part should match R10 on same W");
+            assert_eq!(
+                active_lt, active1,
+                "LT active part should match R10 on same W"
+            );
         }
     }
 }

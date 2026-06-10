@@ -5,12 +5,12 @@
 
 mod degree_dist;
 mod degree_sampling;
-mod set_sampling;
 mod deterministic_generator;
 mod random_generator;
+mod set_sampling;
 
 pub use degree_dist::*;
 pub use degree_sampling::*;
-pub use set_sampling::*;
 pub use deterministic_generator::*;
 pub use random_generator::*;
+pub use set_sampling::*;

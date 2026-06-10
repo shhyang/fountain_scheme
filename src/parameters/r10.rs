@@ -1,8 +1,8 @@
 // Copyright (c) 2025 Shenghao Yang. All rights reserved.
 // Licensed under the MIT License. See LICENSE-MIT for details.
 
-use fountain_engine::types::CodeParams;
 use crate::math_utils::{middle_binomial, smallest_prime_ge};
+use fountain_engine::types::CodeParams;
 
 /// Generate Raptor10-like parameters from `k` source symbols.
 ///

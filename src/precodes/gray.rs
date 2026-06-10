@@ -21,7 +21,7 @@ impl Gray {
     /// Creates a new Gray code iterator starting at the lexicographically first column.
     pub fn new(length: usize, weight: usize) -> Self {
         let mut g: Vec<bool> = vec![true; weight];
-        g.extend(vec![false; length-weight]);
+        g.extend(vec![false; length - weight]);
         let mut forward_index: Vec<usize> = (1..=length).collect();
         forward_index[0] = weight;
         let backward_index: Vec<usize> = vec![length; length];
@@ -41,7 +41,8 @@ impl Gray {
     /// Resets the iterator and advances to column `col_num` by stepping forward.
     pub fn with_column(&mut self, col_num: usize) {
         self.current_column = vec![true; self.weight];
-        self.current_column.extend(vec![false; self.length-self.weight]);
+        self.current_column
+            .extend(vec![false; self.length - self.weight]);
         self.forward_index = (1..=self.length).collect();
         self.forward_index[0] = self.weight;
         self.backward_index = vec![self.length; self.length];
@@ -73,12 +74,20 @@ impl Gray {
     /// Returns the current column as a `0`/`1` byte vector.
     #[allow(dead_code)] // used by tests and debugging; not used by `R10HDPC` production path
     pub fn current_column(&self) -> Vec<u8> {
-        self.current_column.iter().map(|x| if *x {1} else {0}).collect()
+        self.current_column
+            .iter()
+            .map(|x| if *x { 1 } else { 0 })
+            .collect()
     }
 
     /// Returns the indices of the `1`-positions in the current column.
     pub fn current_column_positions(&self) -> Vec<usize> {
-        self.current_column.iter().enumerate().filter(|(_, x)| **x).map(|(i, _)| i).collect()
+        self.current_column
+            .iter()
+            .enumerate()
+            .filter(|(_, x)| **x)
+            .map(|(i, _)| i)
+            .collect()
     }
 
     /// Returns `(forward_index[0], forward_weight)` for the current forward traversal state.
@@ -97,10 +106,11 @@ impl Gray {
     pub fn next_column(&mut self) {
         let idx = self.forward_index[0]; // the index of the top element
 
-        if idx == self.length { // last column
+        if idx == self.length {
+            // last column
             self.forward_index[0] = self.weight;
-            self.current_column[self.weight-1] = true;
-            self.current_column[self.length-1] = false;
+            self.current_column[self.weight - 1] = true;
+            self.current_column[self.length - 1] = false;
             self.forward_weight = self.weight;
 
             self.backward_index = vec![self.length; self.length];
@@ -114,16 +124,19 @@ impl Gray {
         // update the current column
         if self.current_column[idx] {
             if self.forward_weight > 0 {
-                self.current_column[self.forward_weight-1] = !self.current_column[self.forward_weight-1];
+                self.current_column[self.forward_weight - 1] =
+                    !self.current_column[self.forward_weight - 1];
             } else {
-                self.current_column[idx-1] = !self.current_column[idx-1];
+                self.current_column[idx - 1] = !self.current_column[idx - 1];
             }
             self.forward_weight += 1;
-        } else { // current_column[idx] == false 
+        } else {
+            // current_column[idx] == false
             if self.forward_weight > 1 {
-                self.current_column[self.forward_weight-2] = !self.current_column[self.forward_weight-2];
+                self.current_column[self.forward_weight - 2] =
+                    !self.current_column[self.forward_weight - 2];
             } else {
-                self.current_column[idx-1] = !self.current_column[idx-1];
+                self.current_column[idx - 1] = !self.current_column[idx - 1];
             }
             self.forward_weight -= 1;
         }
@@ -131,7 +144,7 @@ impl Gray {
 
         // update the backward weight
         self.backward_weight = self.forward_weight;
-        /* 
+        /*
         if idx < self.backward_index[0] {
             self.backward_index[idx] = self.backward_index[0];
         } else if idx < self.backward_index[self.backward_index[0]] {
@@ -152,10 +165,10 @@ impl Gray {
         if self.forward_weight == idx || self.forward_weight == 0 {
             self.forward_weight += 1;
         } else {
-            self.forward_weight -= self.current_column[idx-1] as usize;
-            self.forward_index[idx-1] = self.forward_index[0];
+            self.forward_weight -= self.current_column[idx - 1] as usize;
+            self.forward_index[idx - 1] = self.forward_index[0];
             if self.forward_weight == 0 {
-                self.forward_index[0] = idx-1;
+                self.forward_index[0] = idx - 1;
             } else {
                 self.forward_index[0] = self.forward_weight;
             }
@@ -166,17 +179,18 @@ impl Gray {
     /// Steps back to the previous column in the Gray code sequence.
     pub fn previous_column(&mut self) {
         let idx = self.backward_index[0]; // the index of the top element
-        
-        if idx == self.length { // last column
+
+        if idx == self.length {
+            // last column
             self.backward_index = (1..=self.length).collect();
             if self.weight == 1 {
-                self.backward_index[0] = self.length-1  ;
+                self.backward_index[0] = self.length - 1;
             } else {
-                self.backward_index[0] = self.weight-1;
+                self.backward_index[0] = self.weight - 1;
             }
-            self.current_column[self.weight-1] = false;
-            self.current_column[self.length-1] = true;
-            self.backward_weight = self.weight-1;
+            self.current_column[self.weight - 1] = false;
+            self.current_column[self.length - 1] = true;
+            self.backward_weight = self.weight - 1;
 
             self.forward_index[0] = self.length;
             self.column_num = 0;
@@ -189,16 +203,19 @@ impl Gray {
         // update the current column
         if self.current_column[idx] {
             if self.backward_weight > 0 {
-                self.current_column[self.backward_weight-1] = !self.current_column[self.backward_weight-1];
+                self.current_column[self.backward_weight - 1] =
+                    !self.current_column[self.backward_weight - 1];
             } else {
-                self.current_column[idx-1] = !self.current_column[idx-1];
+                self.current_column[idx - 1] = !self.current_column[idx - 1];
             }
             self.backward_weight += 1;
-        } else { // current_column[idx] == false 
+        } else {
+            // current_column[idx] == false
             if self.backward_weight > 1 {
-                self.current_column[self.backward_weight-2] = !self.current_column[self.backward_weight-2];
+                self.current_column[self.backward_weight - 2] =
+                    !self.current_column[self.backward_weight - 2];
             } else {
-                self.current_column[idx-1] = !self.current_column[idx-1];
+                self.current_column[idx - 1] = !self.current_column[idx - 1];
             }
             self.backward_weight -= 1;
         }
@@ -208,19 +225,19 @@ impl Gray {
         self.forward_weight = self.backward_weight;
         if idx < self.forward_index[0] {
             self.forward_index[idx] = self.forward_index[0];
-        } else if idx < self.forward_index[idx-1] {
-            self.forward_index[idx] = self.forward_index[idx-1];
-        } 
+        } else if idx < self.forward_index[idx - 1] {
+            self.forward_index[idx] = self.forward_index[idx - 1];
+        }
         self.forward_index[0] = idx;
 
         // backward index and weight
         if self.backward_weight == idx || self.backward_weight == 0 {
             self.backward_weight += 1;
         } else {
-            self.backward_weight -= self.current_column[idx-1] as usize;
-            self.backward_index[idx-1] = self.backward_index[0];
+            self.backward_weight -= self.current_column[idx - 1] as usize;
+            self.backward_index[idx - 1] = self.backward_index[0];
             if self.backward_weight == 0 {
-                self.backward_index[0] = idx-1;
+                self.backward_index[0] = idx - 1;
             } else {
                 self.backward_index[0] = self.backward_weight;
             }
@@ -228,7 +245,6 @@ impl Gray {
         self.column_num -= 1;
     }
 }
-
 
 #[cfg(test)]
 mod tests {
@@ -249,11 +265,14 @@ mod tests {
         let mut gray = Gray::new(length, weight);
         let col_num = binomial(weight);
         println!("col_num: {}", col_num);
-        gray.with_column(col_num-1);
-        assert_eq!(gray.column_num, col_num-1);
+        gray.with_column(col_num - 1);
+        assert_eq!(gray.column_num, col_num - 1);
         for _ in 0..col_num - 1 {
             //println!("column number: {:?}", gray.column_num);
-            assert_eq!(gray.current_column().iter().filter(|&&x| x == 1).count(), weight);
+            assert_eq!(
+                gray.current_column().iter().filter(|&&x| x == 1).count(),
+                weight
+            );
             assert_eq!(gray.previous_delta().len(), 2);
         }
         assert_eq!(gray.current_column_positions().len(), weight);
@@ -267,7 +286,11 @@ mod tests {
             println!("i: {}", i);
             gray.next_column();
             println!("current_column: {:?}", gray.current_column());
-            println!("current state: forward {:?}, backward {:?}", gray.current_forward_state(), gray.current_backward_state());
+            println!(
+                "current state: forward {:?}, backward {:?}",
+                gray.current_forward_state(),
+                gray.current_backward_state()
+            );
             println!("forward_index: {:?}", gray.forward_index);
             println!("backward_index: {:?}", gray.backward_index);
         }
@@ -276,7 +299,11 @@ mod tests {
             println!("i: {}", i);
             gray.previous_column();
             println!("current_column: {:?}", gray.current_column());
-            println!("current state: forward {:?}, backward {:?}", gray.current_forward_state(), gray.current_backward_state());
+            println!(
+                "current state: forward {:?}, backward {:?}",
+                gray.current_forward_state(),
+                gray.current_backward_state()
+            );
             println!("forward_index: {:?}", gray.forward_index);
             println!("backward_index: {:?}", gray.backward_index);
         }
@@ -307,7 +334,10 @@ mod tests {
         println!("forward_index: {:?}", gray.forward_index);
         println!("backward_index: {:?}", gray.backward_index);
         gray.previous_column();
-        println!("current_backward_state: {:?}", gray.current_backward_state());
+        println!(
+            "current_backward_state: {:?}",
+            gray.current_backward_state()
+        );
         println!("current_column: {:?}", gray.current_column());
         println!("forward_index: {:?}", gray.forward_index);
         println!("backward_index: {:?}", gray.backward_index);
@@ -334,10 +364,10 @@ mod tests {
     #[test]
     fn test_gray_code_forward_backward() {
         let w = 5;
-        let mut gray = Gray::new(2*w,w);
+        let mut gray = Gray::new(2 * w, w);
         let mut state: Vec<(usize, usize)> = Vec::new();
         let mut column: Vec<Vec<u8>> = Vec::new();
-        let length = binomial(w)-1;
+        let length = binomial(w) - 1;
         for i in 0..length {
             println!("i: {}", i);
             state.push(gray.current_forward_state());
@@ -347,26 +377,19 @@ mod tests {
             gray.next_column();
         }
         for i in 0..length {
-            println!("i: {}", length-i-1);
+            println!("i: {}", length - i - 1);
             gray.previous_column();
             //assert_eq!(gray.current_forward_state(), state[length-i-1]);
             println!("current_state: {:?}", gray.current_forward_state());
             println!("current_column: {:?}", gray.current_column());
-            assert_eq!(gray.current_column(), column[length-i-1]);
+            assert_eq!(gray.current_column(), column[length - i - 1]);
         }
     }
 
     #[test]
     fn test_gray_code_next_column() {
         let mut gray = Gray::new(6, 3);
-        let _expected_states = [
-            (3, 3),
-            (1, 1),
-            (2, 1),
-            (4, 3),
-            (2, 1),
-            (5, 3),
-        ];
+        let _expected_states = [(3, 3), (1, 1), (2, 1), (4, 3), (2, 1), (5, 3)];
         for _ in 0..63 {
             let current_state = gray.current_forward_state();
             println!("current_state: {:?}", current_state);

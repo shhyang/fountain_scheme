@@ -5,7 +5,7 @@ use super::degree_dist::*;
 use crate::types::ProbValue;
 
 /// Sample a degree from a CDF.
-/// r must be a uniformly distributed random number in [0, m), where 
+/// r must be a uniformly distributed random number in [0, m), where
 /// m is the last value of the CDF.
 pub fn sample_degree_from_cdf(cdf: &[ProbValue], r: usize) -> usize {
     let mut i = 0;
@@ -15,7 +15,7 @@ pub fn sample_degree_from_cdf(cdf: &[ProbValue], r: usize) -> usize {
     i
 }
 /// Sample a degree from a PDF.
-/// r must be a uniformly distributed random number in [0, m), where 
+/// r must be a uniformly distributed random number in [0, m), where
 /// m is the sum of the PDF.
 pub fn sample_degree_from_pdf(pdf: &[ProbValue], r: usize) -> usize {
     let cdf = pdf_to_cdf(pdf);
@@ -38,7 +38,10 @@ impl DeterministicDegreeValues {
     /// Builds from a CDF in the same convention as the rest of this module (`cdf[0] == 0`,
     /// `cdf[dmax] == m`). `m` is taken as `cdf.last()`.
     pub fn new_from_cdf(cdf: Vec<u32>) -> Self {
-        assert!(cdf.len() >= 2, "CDF must cover at least degree 1 (len >= 2)");
+        assert!(
+            cdf.len() >= 2,
+            "CDF must cover at least degree 1 (len >= 2)"
+        );
         let m = *cdf.last().expect("cdf non-empty");
         if !validate_cdf(&cdf, m as usize) {
             panic!("Invalid CDF: {:?}", cdf);
@@ -56,11 +59,7 @@ impl DeterministicDegreeValues {
     /// Same apportionment from an explicit PDF; `m` must equal `pdf.iter().sum()`.
     pub fn new_from_pdf(pdf: Vec<u32>, m: u32) -> Self {
         let sum: u64 = pdf.iter().map(|&x| x as u64).sum();
-        assert_eq!(
-            sum,
-            m as u64,
-            "PDF sum must equal m"
-        );
+        assert_eq!(sum, m as u64, "PDF sum must equal m");
         let len = pdf.len();
         Self {
             pdf,
@@ -75,7 +74,6 @@ impl DeterministicDegreeValues {
     pub fn counts(&self) -> &[usize] {
         &self.n_d
     }
-
 
     /// Recomputes `n_d` for exactly `n` coded vectors (largest-remainder apportionment).
     pub fn recompute_counts(&mut self, n: u32) {
@@ -144,10 +142,7 @@ impl DeterministicDegreeValues {
     /// For extending from `n` to `n_prime` coded vectors, returns the multiset of the additional
     /// `n_prime - n` degrees (`n'_d - n_d` expanded as values), in non-decreasing order.
     pub fn additional_degrees(&mut self, n: u32, n_prime: u32) -> Vec<usize> {
-        assert!(
-            n_prime >= n,
-            "n_prime must be >= n"
-        );
+        assert!(n_prime >= n, "n_prime must be >= n");
         self.recompute_counts(n);
         let old = self.n_d.clone();
         self.recompute_counts(n_prime);
@@ -162,7 +157,6 @@ impl DeterministicDegreeValues {
         seq
     }
 }
-
 
 #[cfg(test)]
 mod tests {

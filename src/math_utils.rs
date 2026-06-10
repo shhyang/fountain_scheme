@@ -61,4 +61,3 @@ pub fn is_prime(n: usize) -> bool {
     }
     true
 }
-

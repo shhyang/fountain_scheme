@@ -1,8 +1,7 @@
 // Copyright (c) 2025 Shenghao Yang. All rights reserved.
 // Licensed under the MIT License. See LICENSE-MIT for details.
 
-
-/// New types for probability values and degree values 
+/// New types for probability values and degree values
 pub type ProbValue = u32;
 
 /// Generic pseudo-random source without depending on `rand`.

@@ -3,29 +3,25 @@
 
 use crate::precodes::gray::Gray;
 use fountain_engine::DataManager;
-use fountain_engine::algebra::linear_algebra::Vector;
 use fountain_engine::algebra::finite_field::GF256;
+use fountain_engine::algebra::linear_algebra::Vector;
 use fountain_engine::traits::HDPC;
 use fountain_engine::types::{CodeParams, GF2_FIELD_POLY};
 
-fn r10_mul_data(
-    manager: &mut DataManager,
-    h: usize,
-    x_ids: &[usize],
-    y_ids: &[usize],
-) {
+fn r10_mul_data(manager: &mut DataManager, h: usize, x_ids: &[usize], y_ids: &[usize]) {
     let m = x_ids.len();
     let weight = if h % 2 == 0 { h / 2 } else { h.div_ceil(2) };
     let mut gray = Gray::new(h, weight);
-    gray.with_column(m-1);
+    gray.with_column(m - 1);
     //let kl = params.num_message_ldpc();
     let temp_id = manager.temp_data_id();
     //dbg!(&m, &h);
     //manager.ensure_zero(&[temp_id]);
-    manager.add_to_vector(&[x_ids[m-1]], temp_id);
+    manager.add_to_vector(&[x_ids[m - 1]], temp_id);
     for i in (0..m - 1).rev() {
         //dbg!("mul_vector", &temp_id, manager.get_vector(temp_id));
-        let j = gray.previous_delta()
+        let j = gray
+            .previous_delta()
             .iter()
             .map(|&id| y_ids[id])
             .collect::<Vec<_>>();
@@ -34,7 +30,11 @@ fn r10_mul_data(
     }
     //dbg!("mul_vector", &temp_id, manager.get_vector(temp_id));
     //let j = (0..weight).map(|i| y_ids[i]).collect::<Vec<_>>();
-    let j = gray.current_column_positions().iter().map(|&i| y_ids[i]).collect::<Vec<_>>();
+    let j = gray
+        .current_column_positions()
+        .iter()
+        .map(|&i| y_ids[i])
+        .collect::<Vec<_>>();
     manager.broadcast_add(temp_id, &j);
     manager.remove(temp_id);
 }
@@ -111,7 +111,7 @@ impl HDPC for R10HDPC {
         }
         result
     }
- 
+
     fn mul_sparse(
         &self,
         _gf: Option<&GF256>,
@@ -141,22 +141,22 @@ impl HDPC for R10HDPC {
         let al = a + l;
         let weight = if h % 2 == 0 { h / 2 } else { h.div_ceil(2) };
         let mut gray = Gray::new(h, weight);
-        gray.with_column(al-1);
+        gray.with_column(al - 1);
 
         let mut result = vec![vec![0u8; h]; h];
-        
+
         let mut tmp = vec![0u8; h];
-        for &col in &s(l-1) {
+        for &col in &s(l - 1) {
             tmp[col] ^= 1;
         }
-    
+
         for i in (0..al - 1).rev() {
             let j = gray.previous_delta();
             // Add the row to result[j[0]] and result[j[1]]
             Vector::add_inplace(&mut result[j[0]], &tmp);
             Vector::add_inplace(&mut result[j[1]], &tmp);
             if i >= a {
-                for &col in &s(i-a) {
+                for &col in &s(i - a) {
                     tmp[col] ^= 1;
                 }
             }
@@ -188,19 +188,19 @@ mod gf_poly_tests {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::validation::*;
+    use fountain_engine::DataManager;
     use fountain_engine::GF256;
     use fountain_engine::traits::HDPC;
     use fountain_engine::types::CodeParams;
-    use fountain_engine::DataManager;
-    use fountain_utility::VecDataOperater;
     use fountain_engine::types::SolverType;
-    use crate::validation::*;
+    use fountain_utility::VecDataOperater;
     #[test]
     fn test_hdpc_10_mul_data() {
         let h = 10;
         let k = 10;
         let l = 5;
-        let kl = k+l;
+        let kl = k + l;
         let vec_length = kl;
         let params = CodeParams::new(k, k, l, h);
 
@@ -210,7 +210,8 @@ mod tests {
             matrix_x[i][i] = 1;
         }
 
-        let mut data_manager = DataManager::new_with_operator(Box::new(VecDataOperater::new(vec_length)));
+        let mut data_manager =
+            DataManager::new_with_operator(Box::new(VecDataOperater::new(vec_length)));
         data_manager.config_from(params.clone(), SolverType::OrdEnc);
 
         let x_ids = (0..kl).collect::<Vec<usize>>();
@@ -249,7 +250,7 @@ mod tests {
     // return the smallest h such that C(h, h/2) >= k
     fn get_h(k: usize) -> usize {
         let mut h = 1;
-        while binomial(h, h/2) < k as u64 {
+        while binomial(h, h / 2) < k as u64 {
             h += 1;
         }
         h
@@ -259,7 +260,7 @@ mod tests {
     fn test_cross_validate_hdpc() {
         for k in 21..250 {
             let l = k / 10;
-            let h = get_h(k+l);
+            let h = get_h(k + l);
             let params = CodeParams::new(k, k, l, h);
             let hdpc = R10HDPC::new();
             //validate_hdpc_mul_sparse(&hdpc, &params);
