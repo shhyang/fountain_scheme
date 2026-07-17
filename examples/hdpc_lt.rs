@@ -6,10 +6,10 @@
 //! This example demonstrates [`HDPCLTCode`]: R10-style LDPC + default cyclic HDPC precoding
 //! and Raptor-style degree sets.
 
-use fountain_scheme::validation::pseudo_rand::XorShift64;
 use fountain_scheme::HDPCLTCode;
+use fountain_scheme::validation::pseudo_rand::XorShift64;
 use fountain_utility::{
-    test_code_scheme_multiple, test_code_scheme_with_data_vectors, TestResult, TestStatistics,
+    TestResult, TestStatistics, test_code_scheme_multiple, test_code_scheme_with_data_vectors,
 };
 
 /// Compute standard deviation of decoding overhead (coded vectors used - k) for successful runs.
@@ -23,11 +23,8 @@ fn overhead_std_dev(k: usize, results: &[TestResult]) -> f64 {
         return 0.0;
     }
     let mean = overheads.iter().sum::<f64>() / overheads.len() as f64;
-    let variance = overheads
-        .iter()
-        .map(|x| (x - mean).powi(2))
-        .sum::<f64>()
-        / (overheads.len() - 1) as f64;
+    let variance =
+        overheads.iter().map(|x| (x - mean).powi(2)).sum::<f64>() / (overheads.len() - 1) as f64;
     variance.sqrt()
 }
 
@@ -51,7 +48,11 @@ fn main() {
     let std_dev1 = overhead_std_dev(k, &results1);
     println!(
         "  Success: {}/{} ({:.1}%), mean overhead: {:.3}, std dev: {:.3}",
-        successful_runs1, num_runs1, success_rate1 * 100.0, overhead_stats1.mean, std_dev1
+        successful_runs1,
+        num_runs1,
+        success_rate1 * 100.0,
+        overhead_stats1.mean,
+        std_dev1
     );
 
     // Test 2: HDPC-LT with message vectors for verification
@@ -62,7 +63,8 @@ fn main() {
         if i % 2 == 0 && i > 0 {
             println!("  Completed {} runs...", i);
         }
-        let result = test_code_scheme_with_data_vectors(&code2, k, data_vector_length, num_coded_vectors);
+        let result =
+            test_code_scheme_with_data_vectors(&code2, k, data_vector_length, num_coded_vectors);
         results2.push(result);
     }
     let (num_runs2, successful_runs2, success_rate2) = TestStatistics::success_rate(&results2);
@@ -70,7 +72,11 @@ fn main() {
     let std_dev2 = overhead_std_dev(k, &results2);
     println!(
         "  Success: {}/{} ({:.1}%), mean overhead: {:.3}, std dev: {:.3}",
-        successful_runs2, num_runs2, success_rate2 * 100.0, overhead_stats2.mean, std_dev2
+        successful_runs2,
+        num_runs2,
+        success_rate2 * 100.0,
+        overhead_stats2.mean,
+        std_dev2
     );
 
     // Comparative analysis
@@ -99,8 +105,20 @@ fn main() {
 
     // Best configuration by mean overhead (among those with at least one success)
     let configs = [
-        ("HDPC-LT (R10+default HDPC)", success_rate1, num_runs1, &overhead_stats1, std_dev1),
-        ("HDPC-LT (R10+default HDPC) w/ vectors", success_rate2, num_runs2, &overhead_stats2, std_dev2),
+        (
+            "HDPC-LT (R10+default HDPC)",
+            success_rate1,
+            num_runs1,
+            &overhead_stats1,
+            std_dev1,
+        ),
+        (
+            "HDPC-LT (R10+default HDPC) w/ vectors",
+            success_rate2,
+            num_runs2,
+            &overhead_stats2,
+            std_dev2,
+        ),
     ];
     let best = configs
         .iter()

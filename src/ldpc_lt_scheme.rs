@@ -34,7 +34,7 @@ pub struct LDPCLTCode<R: PseudoRandom> {
 /// R10-style `k`, `a`, `l` from [`r10::generate_r10_parameters`], with `h = 0`.
 ///
 /// This type only installs LDPC in [`CodeScheme::create_precode`]; leaving `h > 0` would reserve
-/// HDPC variables that [`fountain_engine::core::precode::precode_encode`] never fills.
+/// HDPC variables that [`fountain_engine::core::precode::ordinary_precode_encode`] never fills.
 fn ldpc_lt_code_params(k: usize) -> CodeParams {
     let mut p = r10::generate_r10_parameters(k);
     p.h = 0;

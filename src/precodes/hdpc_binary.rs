@@ -2,6 +2,7 @@
 // Licensed under the MIT License. See LICENSE-MIT for details.
 
 use crate::precodes::gray::Gray;
+use fountain_engine::BinaryMatrix;
 use fountain_engine::DataManager;
 use fountain_engine::algebra::finite_field::GF256;
 use fountain_engine::algebra::linear_algebra::Vector;
@@ -17,7 +18,7 @@ fn r10_mul_data(manager: &mut DataManager, h: usize, x_ids: &[usize], y_ids: &[u
     let temp_id = manager.temp_data_id();
     //dbg!(&m, &h);
     //manager.ensure_zero(&[temp_id]);
-    manager.add_to_vector(&[x_ids[m - 1]], temp_id);
+    manager.add_one_to_vector(x_ids[m - 1], temp_id);
     for i in (0..m - 1).rev() {
         //dbg!("mul_vector", &temp_id, manager.get_vector(temp_id));
         let j = gray
@@ -25,8 +26,8 @@ fn r10_mul_data(manager: &mut DataManager, h: usize, x_ids: &[usize], y_ids: &[u
             .iter()
             .map(|&id| y_ids[id])
             .collect::<Vec<_>>();
-        manager.broadcast_add(temp_id, &j);
-        manager.add_to_vector(&[x_ids[i]], temp_id);
+        manager.broadcast_add_owned(temp_id, j);
+        manager.add_one_to_vector(x_ids[i], temp_id);
     }
     //dbg!("mul_vector", &temp_id, manager.get_vector(temp_id));
     //let j = (0..weight).map(|i| y_ids[i]).collect::<Vec<_>>();
@@ -35,7 +36,7 @@ fn r10_mul_data(manager: &mut DataManager, h: usize, x_ids: &[usize], y_ids: &[u
         .iter()
         .map(|&i| y_ids[i])
         .collect::<Vec<_>>();
-    manager.broadcast_add(temp_id, &j);
+    manager.broadcast_add_owned(temp_id, j);
     manager.remove(temp_id);
 }
 
@@ -108,6 +109,45 @@ impl HDPC for R10HDPC {
         let j = gray.current_column_positions();
         for i in j {
             Vector::add_inplace(&mut result[i], &tmp);
+        }
+        result
+    }
+
+    fn mul_binary_packed(
+        &self,
+        _gf: Option<&GF256>,
+        params: &CodeParams,
+        num_inactive: usize,
+        tilde_g: &BinaryMatrix,
+    ) -> BinaryMatrix {
+        let h = params.h;
+        let kl = params.num_message_ldpc();
+        let weight = if h % 2 == 0 { h / 2 } else { h.div_ceil(2) };
+        let mut gray = Gray::new(h, weight);
+        gray.with_column(kl - 1);
+
+        let mut result = BinaryMatrix::new(num_inactive);
+        for _ in 0..h {
+            result.push_row();
+        }
+
+        let nwords = tilde_g.words_per_row();
+        let mut tmp = vec![0_u64; nwords];
+        tilde_g.copy_row_words(kl - 1, &mut tmp, num_inactive);
+
+        for i in (0..kl - 1).rev() {
+            let j = gray.previous_delta();
+            result.xor_row_from_words(j[0], &tmp, num_inactive);
+            result.xor_row_from_words(j[1], &tmp, num_inactive);
+            let mut row_i = vec![0_u64; nwords];
+            tilde_g.copy_row_words(i, &mut row_i, num_inactive);
+            for w in 0..nwords {
+                tmp[w] ^= row_i[w];
+            }
+        }
+        let j = gray.current_column_positions();
+        for &idx in &j {
+            result.xor_row_from_words(idx, &tmp, num_inactive);
         }
         result
     }

@@ -102,7 +102,7 @@ fn test_lu_solve_incr() {
         let vector_a = gen_random_vector(n, 8);
         let vector_b = Matrix::multiply(&field, &[vector_a.clone()], &matrix_x);
         let data_id = data_manager.temp_data_id();
-        data_manager.ensure_zero(&[data_id]);
+        data_manager.ensure_zero_one(data_id);
         data_manager.insert_data_vector(data_id, &vector_b[0]);
         data_ids.push(data_id);
         matrix_a.push(vector_a);
@@ -211,7 +211,7 @@ fn test_matrix_multiplication() {
     }
     // initialize the result vectors B with zeros
     for i in 0..m {
-        data_manager.ensure_zero(&[n + i]);
+        data_manager.ensure_zero_one(n + i);
     }
     // calculate B = A X using the data manager
     for i in 0..m {

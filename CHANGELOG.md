@@ -2,6 +2,15 @@
 
 All notable changes to the published `fountain_scheme` crate are documented here.
 
+## [2.0.0] - 2026-07-17
+
+### Changed
+
+- **`fountain_engine` dependency** bumped to **2.0.0** (SystemSolver-based engine).
+- **`fountain_utility` dependency** bumped to **2.0.0**.
+- **HDPC precodes:** `mul_data` paths use `add_one_to_vector` / `broadcast_add_owned`; validation uses `ensure_zero_one`.
+- **Binary HDPC:** adds `mul_binary_packed` for the engine v2 packed GF(2) inactive path (in addition to dense `mul_binary`).
+
 ## [1.3.0] - 2026-06-08
 
 ### Changed
@@ -14,4 +23,4 @@ All notable changes to the published `fountain_scheme` crate are documented here
 
 ### Notes
 
-- Published against the **legacy solver** `fountain_engine` surface (no `BinaryMatrix` / `mul_binary_packed` fast path). Binary HDPC uses dense `mul_binary` only; behavior matches prior releases.
+- Published against the then-current `fountain_engine` 1.x surface; binary HDPC used dense `mul_binary` only.

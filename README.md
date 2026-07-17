@@ -28,6 +28,17 @@ sys.as_systematic();
 let _binary_hdpc = BinaryHDPCLTCode::new_with_ideal_soliton(k, rng);
 ```
 
+## Dependency
+
+Requires **`fountain_engine` 2.0** and **`fountain_utility` 2.0**:
+
+```toml
+[dependencies]
+fountain_scheme = "2.0.0"
+fountain_engine = "2.0.0"
+fountain_utility = "2.0.0"
+```
+
 ## License
 
 MIT License. See [LICENSE-MIT](LICENSE-MIT).

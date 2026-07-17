@@ -25,28 +25,28 @@ fn rq_mul_data(
     let temp_id = manager.temp_data_id();
     //dbg!(&m, &h);
     //manager.ensure_zero(&[temp_id]);
-    manager.add_to_vector(&[x_ids[0]], temp_id);
+    manager.add_one_to_vector(x_ids[0], temp_id);
     for i in 0..m - 1 {
         //dbg!("mul_vector", &temp_id, manager.get_vector(temp_id));
         let j = delta_column(i)
             .iter()
             .map(|&id| y_ids[id])
             .collect::<Vec<_>>();
-        manager.broadcast_add(temp_id, &j);
+        manager.broadcast_add_owned(temp_id, j);
         manager.multiply_alpha(temp_id);
-        manager.add_to_vector(&[x_ids[i + 1]], temp_id);
+        manager.add_one_to_vector(x_ids[i + 1], temp_id);
     }
     for i in m - 1..kl - 1 {
         let j = delta_column(i)
             .iter()
             .map(|&id| y_ids[id])
             .collect::<Vec<_>>();
-        manager.broadcast_add(temp_id, &j);
+        manager.broadcast_add_owned(temp_id, j);
         manager.multiply_alpha(temp_id);
     }
     //dbg!("mul_vector", &temp_id, manager.get_vector(temp_id));
     for i in 0..h {
-        manager.add_to_vector(&[temp_id], y_ids[i]);
+        manager.add_one_to_vector(temp_id, y_ids[i]);
         manager.multiply_alpha(temp_id);
     }
     manager.remove(temp_id);
@@ -311,13 +311,13 @@ impl RQHDPC {
         let temp_id = manager.temp_data_id();
         //dbg!(&m, &h);
         //manager.ensure_zero(&[temp_id]);
-        manager.add_to_vector(&[x_pkg[0]], temp_id);
+        manager.add_one_to_vector(x_pkg[0], temp_id);
         for i in 0..m-1 {
             //dbg!("mul_vector", &temp_id, manager.get_vector(temp_id));
             let j = (self.delta_column_fn)(i).iter().map(|&id| y_pkg[id]).collect::<Vec<_>>();
             manager.broadcast_add(temp_id, &j);
             manager.multiply_alpha(temp_id);
-            manager.add_to_vector(&[x_pkg[i+1]], temp_id);
+            manager.add_one_to_vector(x_pkg[i+1], temp_id);
         }
         for i in m-1..kl-1 {
             let j = (self.delta_column_fn)(i).iter().map(|&id| y_pkg[id]).collect::<Vec<_>>();
@@ -326,7 +326,7 @@ impl RQHDPC {
         }
         //dbg!("mul_vector", &temp_id, manager.get_vector(temp_id));
         for i in 0..h {
-            manager.add_to_vector(&[temp_id], y_pkg[i]);
+            manager.add_one_to_vector(temp_id, y_pkg[i]);
             manager.multiply_alpha(temp_id);
         }
     }

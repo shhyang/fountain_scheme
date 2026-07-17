@@ -141,7 +141,7 @@ pub fn validate_hdpc_mul_data<T: HDPC + ?Sized>(
 
     let y_ids: Vec<usize> = (kl..kl + h).collect();
     for &id in &y_ids {
-        manager.ensure_zero(&[id]);
+        manager.ensure_zero_one(id);
     }
 
     hdpc.mul_data(&mut manager, params, &x_ids, &y_ids);
@@ -204,7 +204,7 @@ pub fn validate_hdpc_mul_data<T: HDPC + ?Sized>(
     }
     let y_ids: Vec<usize> = (al..al + h).collect();
     for &id in &y_ids {
-        manager.ensure_zero(&[id]);
+        manager.ensure_zero_one(id);
     }
     hdpc.mul_data(&mut manager, params, &x_ids, &y_ids);
     let result_mul_data_2: Vec<Vec<u8>> = y_ids

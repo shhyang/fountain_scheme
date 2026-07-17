@@ -107,10 +107,8 @@ fn main() {
         );
 
         // Setup decoder
-        let mut decoder = Decoder::new_with_operator(
-            &ldpc_lt_code,
-            Box::new(VecDataOperater::new(symbol_size)),
-        );
+        let mut decoder =
+            Decoder::new_with_operator(&ldpc_lt_code, Box::new(VecDataOperater::new(symbol_size)));
 
         println!("Starting LDPC-LT decoding...");
 
